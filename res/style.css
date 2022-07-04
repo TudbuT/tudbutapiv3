@@ -61,3 +61,8 @@ table td {
     display: block;
     height: 20vh;
 }
+
+hr {
+    background-color: #cdd;
+    border: 1px solid #abb;
+}

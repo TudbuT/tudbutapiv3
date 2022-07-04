@@ -21,8 +21,8 @@
             <center><h2>Let's fix that.</h2></center>
 
             The third iteration of my API is running on Tryumph, a robust HTTP server written
-            in Java, able to route traffic using an annotation-based event distrubution system,
-            and with numerous parsers built right into the server.
+            in Java, able to route traffic using an annotation-based event distrubution 
+            system, and with numerous parsers built right into the server.
             <br>
             <br>
             For example, it can detect:<br>
@@ -30,8 +30,16 @@
                 <b>Your browser's fingerprint:</b>
                 <div id="fingerprint"></div>
             </div>
-            right on the server side, and without any JavaScript required. It can also modify
-            the HTML being sent on-the-fly, and inject mobile-compatibility code (try it out!)
+            right on the server side, and without any JavaScript required. It can also 
+            modify the HTML being sent on-the-fly, and inject mobile-compatibility code.
+            <br>
+            <br>
+            The API is also using an entirely new data model: A UserRecord points to multiple
+            ServiceRecords which link to their ServiceData, which is data about what the 
+            service is, how many people use it, etc.<br>
+            There will be a Discord service aswell, so users can link their Discord account.
+            Because of this, I could make a Discord bot that tells people how much playtime 
+            they have, and other statistics.
             <br>
             <br>
             <hr>
@@ -74,7 +82,7 @@
                     <table><tr>
                             <td>Question:</td>
                             <td>
-                                Will my playtime be reset?
+                                Is my playtime reset?
                             </td>
                         </tr><tr>
                             <td>Answer:</td>
@@ -100,12 +108,25 @@
                     <table><tr>
                             <td>Question:</td>
                             <td>
-                                Is the new API going to use JSON?
+                                Is the new API Using JSON?
                             </td>
                         </tr><tr>
                             <td>Answer:</td>
                             <td>
-                                For each endpoint, it will have JSON formatting, and TCN (a more readable format) formatting.
+                                For each endpoint, it has JSON formatting, and TCN (a more readable format) formatting.
+                            </td>
+                    </tr></table>
+                </li>
+                <li>
+                    <table><tr>
+                            <td>Question:</td>
+                            <td>
+                                When will the discord bot be available and how do I use it?
+                            </td>
+                        </tr><tr>
+                            <td>Answer:</td>
+                            <td>
+                                There will be a button on the website, it will be explained when you click that.
                             </td>
                     </tr></table>
                 </li>
@@ -132,12 +153,16 @@
                             <td>Answer:</td>
                             <td>
                                 Yes, most likely. DM TudbuT#2624 on Discord or write to api@mail.tudbut.de and provide details, I will consider adding
-                                a service. If so, you will receive a key with which you can manage the service. <b>Coding knowledge required!!!</b>
+                                a service. If so, you will receive a key with which you can manage the service. <b>Coding knowledge required</b> because
+                                there isn't a GUI for service management!!!
                             </td>
                     </tr></table>
                 </li>
             </ul>
-            <div class="space"/>
+            <div class="space"></div>
+            <div class="strikethrough">
+                Finally, another project I can use a JSON database in.
+            </div>
 
         </div>
     </body>

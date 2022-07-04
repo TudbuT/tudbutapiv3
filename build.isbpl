@@ -1,0 +1,8 @@
+"builder.isbpl" include
+
+func dependencies {
+    "../tryumph/Tryumph.jar" file
+}
+
+"TryumphTest" =name
+"de.tudbut.tryumph.Launch" =mainClass

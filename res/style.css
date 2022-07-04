@@ -1,0 +1,63 @@
+html {
+    font-family: sans-serif;
+    background-color: #222828;
+    color: #cdd;
+}
+
+center {
+    text-align: center;
+}
+
+.content {
+    margin: auto;
+    display: block;
+    max-width: 700px;
+    word-wrap: break-word;
+    text-align: justify;
+}
+
+.indent {
+    margin: 0 0 0 20px;
+    display: block;
+}
+
+micro {
+    font-size: min(50%, 10px);
+    vertical-align: super;
+    font-style: normal;
+    font-weight: normal;
+}
+
+invisible {
+    display: block;
+}
+
+invisible content {
+    opacity: 0%;
+    transition: opacity 1s;
+}
+
+invisible:hover content {
+    opacity: 100%;
+    transition: opacity 2s;
+}
+
+table td {
+    vertical-align: super;
+    word-wrap: break-word;
+    text-align: justify;
+}
+
+.faq li {
+    border: 0;
+    border-bottom: dashed 1px #888;
+}
+
+.faqstart {
+    list-style: none;
+}
+
+.space {
+    display: block;
+    height: 20vh;
+}

@@ -1,0 +1,144 @@
+<html>
+    <head>
+        <title>TudbuT API v3</title>
+    </head>
+    <body>
+        <center>
+            <h1> TudbuT API, the third. </h1>
+        </center>
+        <br/>
+        <br/>
+
+        <div class=content>
+
+            The TudbuT API has existed for quite a while now, and its current version is...
+            less than ideal. It's hard to maintain (giant switch statements are what routes
+            traffic), the database is old and could use a revamp, the UserRecord model bugs 
+            out when the user uses multiple things at once.
+            <br>
+            <br>
+            <hr>
+            <center><h2>Let's fix that.</h2></center>
+
+            The third iteration of my API is running on Tryumph, a robust HTTP server written
+            in Java, able to route traffic using an annotation-based event distrubution system,
+            and with numerous parsers built right into the server.
+            <br>
+            <br>
+            For example, it can detect:<br>
+            <div class="indent">
+                <b>Your browser's fingerprint:</b>
+                <div id="fingerprint"></div>
+            </div>
+            right on the server side, and without any JavaScript required. It can also modify
+            the HTML being sent on-the-fly, and inject mobile-compatibility code (try it out!)
+            <br>
+            <br>
+            <hr>
+            <center><h2>Getting to the point</h2></center>
+            The API has been completely remade, now with support for multiple services, so
+            other clients by myself and others can use the API aswell. It's also much
+            cleaner code, meaning I'll be able to add features much more easily.
+            <br>
+            <br>
+            <hr>
+            <center>
+                <invisible>
+                <h2>And now for the big announcement.<micro>Hover/Tap</micro></h2>
+                    <content>
+                        <b>The API is going open-source 10 days after launch.</b>
+                    </content>
+                </invisible>
+            </center>
+            <br>
+            <hr>
+            <center>
+                <h2>FAQ</h2>
+            </center>
+            <ul class="faq">
+                <li class="faqstart"></li>
+                <li>
+                    <table><tr>
+                            <td>Question:</td>
+                            <td>
+                                What about old data?
+                            </td>
+                        </tr><tr>
+                            <td>Answer:</td>
+                            <td>
+                                Anything that can be migrated, will be.
+                            </td>
+                    </tr></table>
+                </li>
+                <li>
+                    <table><tr>
+                            <td>Question:</td>
+                            <td>
+                                Will my playtime be reset?
+                            </td>
+                        </tr><tr>
+                            <td>Answer:</td>
+                            <td>
+                                No.
+                            </td>
+                    </tr></table>
+                </li>
+                <li>
+                    <table><tr>
+                            <td>Question:</td>
+                            <td>
+                                Will there be a download of the old database?
+                            </td>
+                        </tr><tr>
+                            <td>Answer:</td>
+                            <td>
+                                Yes, partially.
+                            </td>
+                    </tr></table>
+                </li>
+                <li>
+                    <table><tr>
+                            <td>Question:</td>
+                            <td>
+                                Is the new API going to use JSON?
+                            </td>
+                        </tr><tr>
+                            <td>Answer:</td>
+                            <td>
+                                For each endpoint, it will have JSON formatting, and TCN (a more readable format) formatting.
+                            </td>
+                    </tr></table>
+                </li>
+                <li>
+                    <table><tr>
+                            <td>Question:</td>
+                            <td>
+                                When will the source code be published and where?
+                            </td>
+                        </tr><tr>
+                            <td>Answer:</td>
+                            <td>
+                                Probably GitHub, maybe GitLab, and as soon as I'm decently confident there're no vulnerabilities (ETA 10 days after launch of API).
+                            </td>
+                    </tr></table>
+                </li>
+                <li>
+                    <table><tr>
+                            <td>Question:</td>
+                            <td>
+                                Can I use the API for my client?
+                            </td>
+                        </tr><tr>
+                            <td>Answer:</td>
+                            <td>
+                                Yes, most likely. DM TudbuT#2624 on Discord or write to api@mail.tudbut.de and provide details, I will consider adding
+                                a service. If so, you will receive a key with which you can manage the service. <b>Coding knowledge required!!!</b>
+                            </td>
+                    </tr></table>
+                </li>
+            </ul>
+            <div class="space"/>
+
+        </div>
+    </body>
+</html>

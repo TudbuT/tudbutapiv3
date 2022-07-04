@@ -1,0 +1,4 @@
+tudbutapiv3 {
+    main class: de.tudbut.tudbutapiv3.Main
+    port: 80
+}

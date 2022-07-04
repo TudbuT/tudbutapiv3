@@ -1,0 +1,5 @@
+/build/
+/run.sh
+/lib/
+/javadoc/
+/*.jar

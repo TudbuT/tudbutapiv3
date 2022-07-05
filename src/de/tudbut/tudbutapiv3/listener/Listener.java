@@ -49,4 +49,10 @@ public class Listener {
         res.call(redirect(req, "/"));
     }
 
+    @GET
+    @Path("/api/service/create")
+    public void serviceCreate(Request req, Callback<Response> res, Callback<Throwable> rej) {
+        
+    }
+
 }

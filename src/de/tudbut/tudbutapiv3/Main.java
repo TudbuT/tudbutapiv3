@@ -12,10 +12,17 @@ import de.tudbut.tryumph.events.EventListener;
 import de.tudbut.tryumph.server.Request;
 import de.tudbut.tryumph.server.Response;
 import de.tudbut.tudbutapiv3.listener.Listener;
+import tudbut.logger.Logger;
 
 public class Main implements IRequestCatcher {
 
     EventListener listener = new EventListener(new Listener());
+	public static Logger logger = new Logger("TudbuT API v3");
+    
+    public Main() {
+        System.setOut(logger.infoAsStream());
+        System.setErr(logger.warnAsStream());
+    }
 
     @Override
     public TaskCallable<ComposeCallback<Request, Response>> onConnect(Socket arg0) {

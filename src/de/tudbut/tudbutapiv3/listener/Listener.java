@@ -1,6 +1,7 @@
 package de.tudbut.tudbutapiv3.listener;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -22,6 +23,8 @@ import de.tudbut.tudbutapiv3.data.ServiceRecord;
 import de.tudbut.tudbutapiv3.data.UserRecord;
 import tudbut.parsing.JSON;
 import tudbut.parsing.TCN;
+import tudbut.tools.encryption.Key;
+import tudbut.tools.encryption.RawKey;
 
 public class Listener {
 
@@ -49,32 +52,24 @@ public class Listener {
     }
 
     @POST
-    @Path("/")
-    public void onSubmit(Request req, Callback<Response> res, Callback<Throwable> rej) {
-        TCN body = req.bodyURLEncoded();
-        req.context.data.set(body.getString("name"), body.getString("value"));
-        req.context.save();
-        res.call(redirect(req, "/"));
-    }
-
-    @POST
     @Path("/api/service/[a-z]+/use")
-    public Response onUse(
+    public Response useService(
             Request request, 
             @PPathFragment(3) String service, 
             @PBody("uuid") String uuid, 
             @PBody("name") String name
     ) {
         TCN tcn = new TCN();
-        tcn.set("foundService", false);
+        tcn.set("found", false);
         tcn.set("updated", false);
         if(Database.serviceExists(service)) {
             UserRecord user = Database.getUser(uuid, name);
-            tcn.set("foundService", true);
+            tcn.set("found", true);
             if(user != null) {
                 ServiceRecord record = user.service(Database.service(service)).ok().await();
                 record.use();
-                tcn.set("serviceRecord", record.data);
+                tcn.set("service", record.data);
+                tcn.set("user", record.parent.data);
                 tcn.set("updated", true);
             }
         }
@@ -83,7 +78,7 @@ public class Listener {
 
     @POST
     @Path("/api/service/[a-z]+/create")
-    public Response onCreate(
+    public Response createService(
             Request request,
             @PPathFragment(3) String service,
             @PBody("pass") String password
@@ -96,6 +91,149 @@ public class Listener {
             if(!Database.serviceExists(service)) {
                 tcn.set("created", true);
                 Database.makeService(service);
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @GET
+    @Path("/api/service/[a-z]+")
+    public Response getService(
+            Request request,
+            @PPathFragment(3) String service
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("found", false);
+        if(Database.serviceExists(service)) {
+            tcn.set("found", true);
+            tcn.set("service", Database.service(service).data);
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @GET
+    @Path("/api/user/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
+    public Response getUser(
+            Request request,
+            @PPathFragment(3) String user
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("found", false);
+        UserRecord record = Database.getUser(UUID.fromString(user), false);
+        if(record != null) {
+            tcn.set("found", true);
+            tcn.set("user", record.data);
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @GET
+    @Path("/api/user/[a-zA-Z_0-9]+")
+    public Response getUserByName(
+            Request request,
+            @PPathFragment(3) String user
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("found", false);
+        UserRecord record = Database.getUser(null, user, false);
+        if(record != null) {
+            tcn.set("found", true);
+            tcn.set("user", record.data);
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @POST
+    @Path("/api/service/[a-z]+/login")
+    public Response login(
+            Request request,
+            @PPathFragment(3) String service,
+            @PBody("uuid") String uuid,
+            @PBody("name") String name
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("found", false);
+        tcn.set("foundService", false);
+        if(Database.serviceExists(service)) {
+            tcn.set("foundService", true);
+            UserRecord user = Database.getUser(uuid, name);
+            if(user != null) {
+                tcn.set("found", true);
+                RawKey key = user.service(Database.service(service)).ok().await().login();
+                tcn.set("key", key.toString());
+                tcn.set("token", key.toHashString());
+                tcn.set("user", user.data);
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    // To decrypt a message: parseJSON(key.decryptString(decodeB64(messageString))))
+    @POST
+    @Path("/api/service/[a-z]+/message")
+    public Response message(
+            Request request,
+            @PPathFragment(3) String service,
+            @PBody("uuidOther") String ouuid,
+            @PBody("nameOther") String oname,
+            @PBody("uuid") String uuid,
+            @PBody("name") String name,
+            @PBody("token") String keyHash,
+            @PBody("message") String message
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("found", false);
+        tcn.set("accessGranted", false);
+        tcn.set("foundYou", false);
+        tcn.set("foundService", false);
+        if(Database.serviceExists(service)) {
+            tcn.set("foundService", true);
+            UserRecord user = Database.getUser(uuid, name);
+            if(user != null) {
+                tcn.set("foundYou", true);
+                ServiceRecord record = user.service(Database.service(service)).ok().await();
+                if(record.decryptKey().toHashString().equals(keyHash)) {
+                    tcn.set("accessGranted", true);
+                    UserRecord otherUser = Database.getUser(ouuid, oname, false);
+                    if(otherUser != null) {
+                        tcn.set("found", true);
+                        ServiceRecord otherRecord = otherUser.service(Database.service(service)).ok().await();
+                        TCN msg = new TCN();
+                        msg.set("fromUUID", user.uuid);
+                        msg.set("from", user.data);
+                        msg.set("content", message);
+                        otherRecord.message(msg);
+                    }
+                }
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @POST
+    @Path("/api/service/[a-z]+/message/read")
+    public Response messageRead(
+            Request request,
+            @PPathFragment(3) String service,
+            @PBody("uuid") String uuid,
+            @PBody("name") String name,
+            @PBody("token") String keyHash
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("found", false);
+        tcn.set("accessGranted", false);
+        tcn.set("foundService", false);
+        if(Database.serviceExists(service)) {
+            tcn.set("foundService", true);
+            UserRecord user = Database.getUser(uuid, name);
+            if(user != null) {
+                tcn.set("found", true);
+                ServiceRecord record = user.service(Database.service(service)).ok().await();
+                if(record.decryptKey().toHashString().equals(keyHash)) {
+                    tcn.set("accessGranted", true);
+                    tcn.set("messages", record.data.getArray("messages").clone());
+                    record.data.getArray("messages").clear();
+                }
             }
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");

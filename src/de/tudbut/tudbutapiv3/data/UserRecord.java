@@ -23,6 +23,7 @@ public class UserRecord {
             data.set("lastNameFetch", System.currentTimeMillis());
         }).err(e -> data.set("name", "FETCH_ERROR_" + uuid)).ok().await();
         data.set("onlineTime", 0L);
+        data.set("lastOnline", 0L);
     }
 
     public UserRecord(UUID uuid, TCN data) {
@@ -72,5 +73,12 @@ public class UserRecord {
                 res.call(record);
             }
         });
+    }
+
+    public void online() {
+        if(data.getLong("lastOnline") > System.currentTimeMillis() - 1500) {
+            data.set("onlineTime", data.getLong("onlineTime") + (System.currentTimeMillis() - data.getLong("lastOnline")));
+        }
+        data.set("lastOnline", System.currentTimeMillis());
     }
 }

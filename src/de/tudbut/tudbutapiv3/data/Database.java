@@ -16,11 +16,13 @@ import tudbut.parsing.AsyncJSON;
 import tudbut.parsing.JSON;
 import tudbut.parsing.TCN;
 import tudbut.tools.Lock;
+import tudbut.tools.encryption.RawKey;
 
 public class Database {
     public static Logger logger = Main.logger.subChannel("Database");
     public static TCN data;
     public static boolean initialized = false;
+    public static RawKey key;
 
     public static void initiailize() {
         if(initialized) {
@@ -56,6 +58,7 @@ public class Database {
                 data.set("services", new TCN());
                 data.set("nameToUUID", new TCN());
                 data.set("password", Hasher.sha512hex(Hasher.sha512hex(Tools.getStdInput().readLine())));
+                data.set("key", new RawKey().toString());
                 logger.warn("[SETUP] Cool! Admin password setting set to " + data.getString("password") + ".");
                 logger.info("[SETUP] Setup complete. Thank you!");
             } catch (IOException e1) {
@@ -64,6 +67,7 @@ public class Database {
                 System.exit(21);
             }
         }
+        key = new RawKey(data.getString("key"));
         new Thread(() -> {
             Lock lock = new Lock();
             while(true) {
@@ -95,22 +99,32 @@ public class Database {
     }
 
     public static UserRecord getUser(UUID uuid) {
+        return getUser(uuid, true);
+    }
+
+    public static UserRecord getUser(UUID uuid, boolean create) {
         TCN tcn = data.getSub("usersByUUID").getSub(uuid.toString());
         if(tcn != null) {
             return new UserRecord(uuid, tcn);
         }
-        else {
+        else if(create) {
             UserRecord record = new UserRecord(uuid);
             data.getSub("usersByUUID").set(uuid.toString(), record.data);
             return record;
         }
+        return null;
     }
 
     public static UserRecord getUser(String uuid, String name) {
-        if(name != null) {
+        return getUser(uuid, name, true);
+    }
+
+    public static UserRecord getUser(String uuid, String name, boolean create) {
+        if(name != null)
             uuid = data.getSub("nameToUUID").getString(name);
-        }
-        return getUser(UUID.fromString(uuid));
+        if(uuid != null)
+            return getUser(UUID.fromString(uuid));
+        return null;
     }
 
     public static boolean serviceExists(String service) {

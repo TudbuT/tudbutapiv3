@@ -1,6 +1,12 @@
 package de.tudbut.tudbutapiv3.data;
 
+import java.util.Base64;
+
+import tudbut.parsing.JSON;
 import tudbut.parsing.TCN;
+import tudbut.parsing.TCNArray;
+import tudbut.tools.encryption.Key;
+import tudbut.tools.encryption.RawKey;
 
 public class ServiceRecord {
 
@@ -14,16 +20,34 @@ public class ServiceRecord {
         data.set("service", serviceData.name);
         data.set("useTime", 0L);
         data.set("lastUse", System.currentTimeMillis());
+        data.set("messageToken", Base64.getEncoder().encodeToString(Database.key.encryptString(new RawKey().toString()).getBytes()));
+        data.set("messages", new TCNArray());
     }
 
     public ServiceRecord(UserRecord parent, TCN data) {
+        this.parent = parent;
         this.data = data;
     }
 
+    public RawKey login() {
+        RawKey key = new RawKey();
+        data.set("messageToken", Base64.getEncoder().encodeToString(Database.key.encryptString(key.toString()).getBytes()));
+        return key;
+    }
+
     public void use() {
+        parent.online();
         if(data.getLong("lastUse") > System.currentTimeMillis() - 1500) {
             data.set("useTime", data.getLong("useTime") + (System.currentTimeMillis() - data.getLong("lastUse")));
         }
         data.set("lastUse", System.currentTimeMillis());
+    }
+
+    public RawKey decryptKey() {
+        return new RawKey(Database.key.decryptString(new String(Base64.getDecoder().decode(data.getString("messageToken")))));
+    }
+
+    public void message(TCN msg) {
+        data.getArray("messages").add(Base64.getEncoder().encodeToString(decryptKey().encryptString(JSON.write(msg)).getBytes()));
     }
 }

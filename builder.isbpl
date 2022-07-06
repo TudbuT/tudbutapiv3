@@ -93,7 +93,7 @@ func build {
     "mkdir -p res/META-INF > /dev/null 2>&1\n" script stream.write
     "mkdir lib > /dev/null 2>&1\n" script stream.write
     "cd src ; find . | grep '\\.java$' | sed 's/^\\.\\/\\(.*\\)$/\\1/g' > ../build/buildfiles.txt\n" script stream.write
-    "javac -d ../build " script stream.write
+    "javac -g -d ../build " script stream.write
     deps°alen if {
         "-cp " script stream.write
         {

@@ -1,7 +1,9 @@
 package de.tudbut.tudbutapiv3.data;
 
+import java.util.Base64;
 import java.util.UUID;
 
+import de.tudbut.tools.Hasher;
 import tudbut.parsing.TCN;
 import tudbut.parsing.TCNArray;
 
@@ -10,11 +12,16 @@ public class ServiceData {
     public TCN data;
     public String name;
 
-    public ServiceData(String name) {
+    public ServiceData(String name, String servicePassword) {
         this.name = name;
         data = new TCN();
         data.set("users", new TCNArray());
         data.set("useTime", 0L);
+        data.set("password", Base64.getEncoder().encodeToString(Database.key.encryptString(Hasher.sha512hex(Hasher.sha512hex(servicePassword))).getBytes()));
+    }
+
+    public String getServicePassHash() {
+        return Database.key.decryptString(new String(Base64.getDecoder().decode(data.getString("password"))));
     }
 
     public ServiceData(String name, TCN data) {

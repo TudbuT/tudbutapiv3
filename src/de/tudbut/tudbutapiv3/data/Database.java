@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import de.tudbut.io.StreamReader;
 import de.tudbut.io.StreamWriter;
@@ -23,7 +24,7 @@ public class Database {
     public static TCN data;
     public static boolean initialized = false;
     public static RawKey key;
-    public static int currentVersion = 1;
+    public static int currentVersion = 3;
 
     public static void initiailize() {
         if(initialized) {
@@ -55,7 +56,7 @@ public class Database {
                 logger.warn("[SETUP] If you try to do this later, the file WILL be autosaved.");
                 logger.warn("[SETUP] Please enter your desired admin password. It will be hashed.");
                 data = new TCN();
-                data.set("usersByUUID", new TCN());
+                data.set("users", new TCN());
                 data.set("services", new TCN());
                 data.set("nameToUUID", new TCN());
                 data.set("password", Hasher.sha512hex(Hasher.sha512hex(Tools.getStdInput().readLine())));
@@ -85,7 +86,47 @@ public class Database {
     }
 
     private static void migrate(int oldVersion) {
-        // Nothing here so far. No new versions have been released so far.
+        logger.warn("[Load] Data migration needed. Version changed from " + oldVersion + " to " + currentVersion + ".");
+        int allModifications = 0;
+        if(oldVersion == 1) {
+            TCN tcn = data.getSub("usersByUUID");
+            AtomicInteger modifications = new AtomicInteger(0);
+            tcn.map.entries().forEach(entry -> {
+                TCN user = (TCN) entry.val;
+                user.set("passwordHash", "");
+                modifications.getAndIncrement();
+                TCN services = user.getSub("services");
+                services.map.keys().forEach(key -> {
+                    services.getSub(key).set("premiumStatus", 0);
+                    modifications.getAndIncrement();
+                });
+            });
+            allModifications += modifications.get();
+            logger.info("[Load] Data migration from " + oldVersion + " to " + (oldVersion + 1) + " successful. " + modifications.get() + " modifications were made.");
+            oldVersion++;
+        }
+        if(oldVersion == 2) {
+            TCN tcn = data.getSub("usersByUUID");
+            AtomicInteger modifications = new AtomicInteger(0);
+            tcn.map.entries().forEach(entry -> {
+                TCN user = (TCN) entry.val;
+                TCN services = user.getSub("services");
+                services.map.keys().forEach(key -> {
+                    services.getSub(key).set("version", "v0.0.0a");
+                    modifications.getAndIncrement();
+                });
+            });
+            data.set("usersByUUID", null);
+            modifications.getAndIncrement();
+            data.set("users", tcn);
+            modifications.getAndIncrement();
+            allModifications += modifications.get();
+            logger.info("[Load] Data migration from " + oldVersion + " to " + (oldVersion + 1) + " successful. " + modifications.get() + " modifications were made.");
+            oldVersion++;
+        }
+        if(oldVersion == currentVersion) {
+            logger.info("[Load] Data migration was successful. " + allModifications + " modifications were made. Thank you for your patience.");
+        }
         data.set("version", currentVersion);
 	}
 
@@ -113,13 +154,13 @@ public class Database {
     }
 
     public static UserRecord getUser(UUID uuid, boolean create) {
-        TCN tcn = data.getSub("usersByUUID").getSub(uuid.toString());
+        TCN tcn = data.getSub("users").getSub(uuid.toString());
         if(tcn != null) {
             return new UserRecord(uuid, tcn);
         }
         else if(create) {
             UserRecord record = new UserRecord(uuid);
-            data.getSub("usersByUUID").set(uuid.toString(), record.data);
+            data.getSub("users").set(uuid.toString(), record.data);
             return record;
         }
         return null;
@@ -145,8 +186,8 @@ public class Database {
         return new ServiceData(service, data.getSub("services").getSub(service));
     }
 
-    public static ServiceData makeService(String name) {
-        ServiceData service = new ServiceData(name);
+    public static ServiceData makeService(String name, String servicePassword) {
+        ServiceData service = new ServiceData(name, servicePassword);
         data.getSub("services").set(name, service.data);
         logger.warn("Service created: " + name + ". Thank you!");
         return service;

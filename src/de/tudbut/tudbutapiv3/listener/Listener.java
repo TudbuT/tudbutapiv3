@@ -81,7 +81,8 @@ public class Listener implements RequestHandler.Listener {
     public Response createService(
             Request request,
             @PPathFragment(3) String service,
-            @PBody("pass") String password
+            @PBody("pass") String password,
+            @PBody("servicePass") String servicePassword
     ) {
         TCN tcn = new TCN();
         tcn.set("passwordMatches", false);
@@ -90,7 +91,7 @@ public class Listener implements RequestHandler.Listener {
             tcn.set("passwordMatches", true);
             if(!Database.serviceExists(service)) {
                 tcn.set("created", true);
-                Database.makeService(service);
+                Database.makeService(service, servicePassword);
             }
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");

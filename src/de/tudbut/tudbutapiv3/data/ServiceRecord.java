@@ -21,6 +21,8 @@ public class ServiceRecord {
         data.set("lastUse", System.currentTimeMillis());
         data.set("messageToken", Base64.getEncoder().encodeToString(Database.key.encryptString(new RawKey().toString()).getBytes()));
         data.set("messages", new TCNArray());
+        data.set("version", "v0.0.0a");
+        data.set("premiumStatus", 0);
     }
 
     public ServiceRecord(UserRecord parent, TCN data) {

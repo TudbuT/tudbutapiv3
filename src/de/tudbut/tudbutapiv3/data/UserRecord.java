@@ -24,6 +24,7 @@ public class UserRecord {
         }).err(e -> data.set("name", "FETCH_ERROR_" + uuid)).ok().await();
         data.set("onlineTime", 0L);
         data.set("lastOnline", 0L);
+        data.set("passwordHash", "");
     }
 
     public UserRecord(UUID uuid, TCN data) {

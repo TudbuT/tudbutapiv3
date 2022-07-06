@@ -11,6 +11,7 @@ import de.tudbut.tryumph.config.IRequestCatcher;
 import de.tudbut.tryumph.events.EventListener;
 import de.tudbut.tryumph.server.Request;
 import de.tudbut.tryumph.server.Response;
+import de.tudbut.tudbutapiv3.data.Database;
 import de.tudbut.tudbutapiv3.listener.Listener;
 import tudbut.logger.Logger;
 
@@ -22,6 +23,7 @@ public class Main implements IRequestCatcher {
     public Main() {
         System.setOut(logger.infoAsStream());
         System.setErr(logger.warnAsStream());
+        Database.initiailize();
     }
 
     @Override

@@ -21,12 +21,13 @@ public class ServiceData {
         this.data = data;
     }
 
-    public UserRecord[] getUsers() {
-        TCNArray users = data.getArray("users");
-        UserRecord[] records = new UserRecord[users.size()];
+    public ServiceRecord[] getUsers() {
+        TCNArray users = TCNArray.fromTCN(data.getSub("users"));
+        ServiceRecord[] records = new ServiceRecord[users.size()];
         // records.length is faster than users.size()
         for(int i = 0; i < records.length; i++) {
-            records[i] = Database.getUser(UUID.fromString(users.getString(i)));
+            UserRecord user = Database.getUser(UUID.fromString(users.getString(i)));
+            records[i] = user.service(this).ok().await();
         }
         return records;
     }

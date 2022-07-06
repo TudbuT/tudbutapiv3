@@ -6,13 +6,21 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import de.tudbut.async.Callback;
+import de.tudbut.tools.Hasher;
 import de.tudbut.tryumph.events.GET;
+import de.tudbut.tryumph.events.PBody;
 import de.tudbut.tryumph.events.POST;
+import de.tudbut.tryumph.events.PPathFragment;
+import de.tudbut.tryumph.events.PQuery;
 import de.tudbut.tryumph.events.Path;
 import de.tudbut.tryumph.server.HTMLParsing;
 import de.tudbut.tryumph.server.Header;
 import de.tudbut.tryumph.server.Request;
 import de.tudbut.tryumph.server.Response;
+import de.tudbut.tudbutapiv3.data.Database;
+import de.tudbut.tudbutapiv3.data.ServiceRecord;
+import de.tudbut.tudbutapiv3.data.UserRecord;
+import tudbut.parsing.JSON;
 import tudbut.parsing.TCN;
 
 public class Listener {
@@ -49,10 +57,48 @@ public class Listener {
         res.call(redirect(req, "/"));
     }
 
-    @GET
-    @Path("/api/service/create")
-    public void serviceCreate(Request req, Callback<Response> res, Callback<Throwable> rej) {
-        
+    @POST
+    @Path("/api/service/[a-z]+/use")
+    public Response onUse(
+            Request request, 
+            @PPathFragment(3) String service, 
+            @PBody("uuid") String uuid, 
+            @PBody("name") String name
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("foundService", false);
+        tcn.set("updated", false);
+        if(Database.serviceExists(service)) {
+            UserRecord user = Database.getUser(uuid, name);
+            tcn.set("foundService", true);
+            if(user != null) {
+                ServiceRecord record = user.service(Database.service(service)).ok().await();
+                record.use();
+                tcn.set("serviceRecord", record.data);
+                tcn.set("updated", true);
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @POST
+    @Path("/api/service/[a-z]+/create")
+    public Response onCreate(
+            Request request,
+            @PPathFragment(3) String service,
+            @PBody("pass") String password
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("passwordMatches", false);
+        tcn.set("created", false);
+        if(Database.data.getString("password").equals(Hasher.sha512hex(Hasher.sha512hex(password)))) { 
+            tcn.set("passwordMatches", true);
+            if(!Database.serviceExists(service)) {
+                tcn.set("created", true);
+                Database.makeService(service);
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
 
 }

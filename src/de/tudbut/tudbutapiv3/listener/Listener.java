@@ -163,6 +163,7 @@ public class Listener implements RequestHandler.Listener {
                 tcn.set("key", key.toString());
                 tcn.set("token", key.toHashString());
                 tcn.set("user", user.data);
+                
             }
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");

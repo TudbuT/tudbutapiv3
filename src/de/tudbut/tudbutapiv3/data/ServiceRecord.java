@@ -31,6 +31,8 @@ public class ServiceRecord {
     public RawKey login() {
         RawKey key = new RawKey();
         data.set("messageToken", Base64.getEncoder().encodeToString(Database.key.encryptString(key.toString()).getBytes()));
+        // Clear messages so that there wont be any unobtainable ones
+        data.getArray("messages").clear();
         return key;
     }
 

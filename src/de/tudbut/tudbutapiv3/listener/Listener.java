@@ -12,6 +12,7 @@ import de.tudbut.tryumph.events.GET;
 import de.tudbut.tryumph.events.PBody;
 import de.tudbut.tryumph.events.POST;
 import de.tudbut.tryumph.events.PPathFragment;
+import de.tudbut.tryumph.events.PQuery;
 import de.tudbut.tryumph.events.Path;
 import de.tudbut.tryumph.events.RequestHandler;
 import de.tudbut.tryumph.server.HTMLParsing;
@@ -22,6 +23,7 @@ import de.tudbut.tudbutapiv3.data.Database;
 import de.tudbut.tudbutapiv3.data.ServiceData;
 import de.tudbut.tudbutapiv3.data.ServiceRecord;
 import de.tudbut.tudbutapiv3.data.UserRecord;
+import tudbut.net.http.serverimpl.Method.Post;
 import tudbut.parsing.JSON;
 import tudbut.parsing.TCN;
 import tudbut.tools.encryption.RawKey;
@@ -97,6 +99,35 @@ public class Listener implements RequestHandler.Listener {
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
 
+    @POST
+    @Path("/api/service/[a-z]+/setPremium")
+    public Response setPremium(
+            Request request,
+            @PPathFragment(3) String service,
+            @PBody("uuid") String uuid,
+            @PBody("name") String name,
+            @PBody("servicePass") String servicePassword,
+            @PBody("status") int status
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("passwordMatches", false);
+        tcn.set("found", false);
+        tcn.set("foundService", false);
+        if(Database.serviceExists(service)) {
+            tcn.set("foundService", true);
+            ServiceData serviceData = Database.service(service);
+            if(serviceData.getServicePassHash().equals(Hasher.sha512hex(Hasher.sha512hex(servicePassword)))) { 
+                tcn.set("passwordMatches", true);
+                UserRecord record = Database.getUser(uuid, name);
+                if(record != null) {
+                    tcn.set("found", true);
+                    record.service(serviceData).ok().await().data.set("premiumStatus", status);
+                }
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
     @GET
     @Path("/api/service/[a-z]+")
     public Response getService(
@@ -108,6 +139,54 @@ public class Listener implements RequestHandler.Listener {
         if(Database.serviceExists(service)) {
             tcn.set("found", true);
             tcn.set("service", Database.service(service).data);
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @Post
+    @Path("/api/user/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/password")
+    public Response setUserPass(
+            Request request,
+            @PPathFragment(3) String user,
+            @PBody("password") String password,
+            @PBody("new") String newPass
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("found", false);
+        tcn.set("set", false);
+        UserRecord record = Database.getUser(UUID.fromString(user), false);
+        if(record != null) {
+            tcn.set("found", true);
+            if(Database.data.getString("password").equals(Hasher.sha512hex(Hasher.sha512hex(password)))) {
+                tcn.set("set", true);
+                record.data.set("passwordHash", Hasher.sha512hex(Hasher.sha512hex(newPass)));
+                tcn.set("user", record.data);
+                tcn.set("uuid", record.uuid.toString());
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @GET
+    @Path("/api/user/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/password")
+    public Response userPass(
+            Request request,
+            @PPathFragment(3) String user,
+            @PQuery("old") String old,
+            @PQuery("new") String newPass
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("found", false);
+        tcn.set("set", false);
+        UserRecord record = Database.getUser(UUID.fromString(user), false);
+        if(record != null) {
+            tcn.set("found", true);
+            if(record.data.getString("passwordHash").equals(Hasher.sha512hex(Hasher.sha512hex(old)))) {
+                tcn.set("set", true);
+                record.data.set("passwordHash", Hasher.sha512hex(Hasher.sha512hex(newPass)));
+                tcn.set("user", record.data);
+                tcn.set("uuid", record.uuid.toString());
+            }
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }

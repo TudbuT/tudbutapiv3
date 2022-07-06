@@ -12,21 +12,21 @@ import de.tudbut.tryumph.events.GET;
 import de.tudbut.tryumph.events.PBody;
 import de.tudbut.tryumph.events.POST;
 import de.tudbut.tryumph.events.PPathFragment;
-import de.tudbut.tryumph.events.PQuery;
 import de.tudbut.tryumph.events.Path;
+import de.tudbut.tryumph.events.RequestHandler;
 import de.tudbut.tryumph.server.HTMLParsing;
 import de.tudbut.tryumph.server.Header;
 import de.tudbut.tryumph.server.Request;
 import de.tudbut.tryumph.server.Response;
 import de.tudbut.tudbutapiv3.data.Database;
+import de.tudbut.tudbutapiv3.data.ServiceData;
 import de.tudbut.tudbutapiv3.data.ServiceRecord;
 import de.tudbut.tudbutapiv3.data.UserRecord;
 import tudbut.parsing.JSON;
 import tudbut.parsing.TCN;
-import tudbut.tools.encryption.Key;
 import tudbut.tools.encryption.RawKey;
 
-public class Listener {
+public class Listener implements RequestHandler.Listener {
 
     @GET
     @Path("/style.css")
@@ -45,7 +45,7 @@ public class Listener {
         res.call(r);
     }
 
-    private Response redirect(Request req, String path) {
+    Response redirect(Request req, String path) {
         Response r = new Response(req, "Redirecting...", 302, "Moved Temporarily");
         r.headers.put("Location", new Header("Location", path, new HashMap<>()));
         return r;
@@ -238,5 +238,39 @@ public class Listener {
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
+
+    @GET
+    @Path("/api/service/[a-z]+/usetime")
+    public Response getUsetime(
+            Request request,
+            @PPathFragment(3) String service
+    ) {
+        ServiceData data = Database.service(service);
+        if(data == null) {
+            return new Response(request, "Service not found", 400, "Service does not exist", "text/txt");
+        }
+        return new Response(request, String.valueOf(data.data.getLong("useTime")), 200, "OK", "text/txt");
+    }
+
+    @GET
+    @Path("/api/service/[a-z]+/usetime/seconds")
+    public Response getUsetimeSecs(
+            Request request,
+            @PPathFragment(3) String service
+    ) {
+        ServiceData data = Database.service(service);
+        if(data == null) {
+            return new Response(request, "Service not found", 400, "Service does not exist", "text/txt");
+        }
+        return new Response(request, String.valueOf(data.data.getLong("useTime") / 1000), 200, "OK", "text/txt");
+    }
+
+	@Override
+	public void handleError(Request request, Throwable err, Callback<Response> res, Callback<Throwable> rej) {
+        TCN error = new TCN();
+        err.printStackTrace();
+        error.set("errorType", err.getClass().getName());
+        res.call(new Response(request, JSON.write(error), 500, "Internal Server Error", "application/json"));
+	}
 
 }

@@ -8,7 +8,7 @@ import org.w3c.dom.Element;
 import de.tudbut.async.ComposeCallback;
 import de.tudbut.async.TaskCallable;
 import de.tudbut.tryumph.config.IRequestCatcher;
-import de.tudbut.tryumph.events.EventListener;
+import de.tudbut.tryumph.events.RequestHandler;
 import de.tudbut.tryumph.server.Request;
 import de.tudbut.tryumph.server.Response;
 import de.tudbut.tudbutapiv3.data.Database;
@@ -17,7 +17,7 @@ import tudbut.logger.Logger;
 
 public class Main implements IRequestCatcher {
 
-    EventListener listener = new EventListener(new Listener());
+    RequestHandler listener = new RequestHandler(new Listener());
 	public static Logger logger = new Logger("TudbuT API v3");
     
     public Main() {

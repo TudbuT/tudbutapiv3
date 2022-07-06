@@ -23,6 +23,7 @@ public class Database {
     public static TCN data;
     public static boolean initialized = false;
     public static RawKey key;
+    public static int currentVersion = 1;
 
     public static void initiailize() {
         if(initialized) {
@@ -59,6 +60,7 @@ public class Database {
                 data.set("nameToUUID", new TCN());
                 data.set("password", Hasher.sha512hex(Hasher.sha512hex(Tools.getStdInput().readLine())));
                 data.set("key", new RawKey().toString());
+                data.set("version", currentVersion);
                 logger.warn("[SETUP] Cool! Admin password setting set to " + data.getString("password") + ".");
                 logger.info("[SETUP] Setup complete. Thank you!");
             } catch (IOException e1) {
@@ -68,6 +70,9 @@ public class Database {
             }
         }
         key = new RawKey(data.getString("key"));
+        if(currentVersion != data.getInteger("version")) {
+            migrate(data.getInteger("version"));
+        }
         new Thread(() -> {
             Lock lock = new Lock();
             while(true) {
@@ -79,7 +84,12 @@ public class Database {
         Runtime.getRuntime().addShutdownHook(new Thread(Database::save));
     }
 
-    public static void save() {
+    private static void migrate(int oldVersion) {
+        // Nothing here so far. No new versions have been released so far.
+        data.set("version", currentVersion);
+	}
+
+	public static void save() {
         synchronized(data) {
             String json = JSON.write(data);
             try {

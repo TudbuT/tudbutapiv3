@@ -5,7 +5,6 @@ import java.util.Base64;
 import tudbut.parsing.JSON;
 import tudbut.parsing.TCN;
 import tudbut.parsing.TCNArray;
-import tudbut.tools.encryption.Key;
 import tudbut.tools.encryption.RawKey;
 
 public class ServiceRecord {
@@ -38,7 +37,9 @@ public class ServiceRecord {
     public void use() {
         parent.online();
         if(data.getLong("lastUse") > System.currentTimeMillis() - 1500) {
-            data.set("useTime", data.getLong("useTime") + (System.currentTimeMillis() - data.getLong("lastUse")));
+            long l = System.currentTimeMillis() - data.getLong("lastUse");
+			data.set("useTime", data.getLong("useTime") + l);
+            Database.service(data.getString("service")).use(l);
         }
         data.set("lastUse", System.currentTimeMillis());
     }

@@ -14,6 +14,7 @@ public class ServiceData {
         this.name = name;
         data = new TCN();
         data.set("users", new TCNArray());
+        data.set("useTime", 0L);
     }
 
     public ServiceData(String name, TCN data) {
@@ -30,5 +31,9 @@ public class ServiceData {
             records[i] = user.service(this).ok().await();
         }
         return records;
+    }
+
+    public void use(long l) {
+        data.set("useTime", data.getLong("useTime") + l);
     }
 }

@@ -51,6 +51,8 @@ public class ServiceRecord {
     }
 
     public void message(TCN msg) {
+        while(data.getArray("messages").size() > 10)
+            data.getArray("messages").remove(0);
         data.getArray("messages").add(Base64.getEncoder().encodeToString(decryptKey().encryptString(JSON.write(msg)).getBytes()));
     }
 }

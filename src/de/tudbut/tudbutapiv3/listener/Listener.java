@@ -111,7 +111,6 @@ public class Listener implements RequestHandler.Listener {
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
 
-    @GET
     @Path("/api/user/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
     public Response getUser(
             Request request,
@@ -119,15 +118,15 @@ public class Listener implements RequestHandler.Listener {
     ) {
         TCN tcn = new TCN();
         tcn.set("found", false);
-        UserRecord record = Database.getUser(UUID.fromString(user), false);
+        UserRecord record = Database.getUser(UUID.fromString(user), request.method.equals("POST"));
         if(record != null) {
             tcn.set("found", true);
             tcn.set("user", record.data);
+            tcn.set("uuid", record.uuid.toString());
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
 
-    @GET
     @Path("/api/user/[a-zA-Z_0-9]+")
     public Response getUserByName(
             Request request,
@@ -135,10 +134,11 @@ public class Listener implements RequestHandler.Listener {
     ) {
         TCN tcn = new TCN();
         tcn.set("found", false);
-        UserRecord record = Database.getUser(null, user, false);
+        UserRecord record = Database.getUser(null, user, request.method.equals("POST"));
         if(record != null) {
             tcn.set("found", true);
             tcn.set("user", record.data);
+            tcn.set("uuid", record.uuid.toString());
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
@@ -200,7 +200,7 @@ public class Listener implements RequestHandler.Listener {
                         tcn.set("found", true);
                         ServiceRecord otherRecord = otherUser.service(Database.service(service)).ok().await();
                         TCN msg = new TCN();
-                        msg.set("fromUUID", user.uuid);
+                        msg.set("fromUUID", user.uuid.toString());
                         msg.set("from", user.data);
                         msg.set("content", message);
                         otherRecord.message(msg);

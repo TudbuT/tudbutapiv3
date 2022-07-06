@@ -4,5 +4,5 @@ func dependencies {
     "../tryumph/Tryumph.jar" file
 }
 
-"TryumphTest" =name
+"TudbuTAPIv3" =name
 "de.tudbut.tryumph.Launch" =mainClass

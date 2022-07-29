@@ -21,8 +21,10 @@ public class ServiceRecord {
         data.set("lastUse", System.currentTimeMillis());
         data.set("messageToken", Base64.getEncoder().encodeToString(Database.key.encryptString(new RawKey().toString()).getBytes()));
         data.set("messages", new TCNArray());
+        data.set("dataMessages", new TCNArray());
         data.set("version", "v0.0.0a");
         data.set("premiumStatus", 0);
+        data.set("data", new TCN());
     }
 
     public ServiceRecord(UserRecord parent, TCN data) {
@@ -36,6 +38,7 @@ public class ServiceRecord {
         data.set("messageToken", Base64.getEncoder().encodeToString(Database.key.encryptString(key.toString()).getBytes()));
         // Clear messages so that there wont be any unobtainable ones
         data.getArray("messages").clear();
+        data.getArray("dataMessages").clear();
         return key;
     }
 
@@ -57,5 +60,10 @@ public class ServiceRecord {
         while(data.getArray("messages").size() > 10)
             data.getArray("messages").remove(0);
         data.getArray("messages").add(Base64.getEncoder().encodeToString(decryptKey().encryptString(JSON.write(msg)).getBytes()));
+    }
+    public void dataMessage(TCN msg) {
+        while(data.getArray("dataMessages").size() > 10)
+            data.getArray("dataMessages").remove(0);
+        data.getArray("dataMessages").add(Base64.getEncoder().encodeToString(decryptKey().encryptString(JSON.write(msg)).getBytes()));
     }
 }

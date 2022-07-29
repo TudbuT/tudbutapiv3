@@ -130,6 +130,101 @@ public class Listener implements RequestHandler.Listener {
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
 
+    @POST
+    @Path("/api/service/[a-z]+/data/set")
+    public Response setServiceData(
+            Request request,
+            @PPathFragment(3) String service,
+            @PBody("uuid") String uuid,
+            @PBody("name") String name,
+            @PBody("servicePass") String servicePassword,
+            @PBody("data") String data
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("passwordMatches", false);
+        tcn.set("found", false);
+        tcn.set("set", false);
+        tcn.set("foundService", false);
+        if(Database.serviceExists(service)) {
+            tcn.set("foundService", true);
+            ServiceData serviceData = Database.service(service);
+            if(serviceData.getServicePassHash().equals(Hasher.sha512hex(Hasher.sha512hex(servicePassword)))) { 
+                tcn.set("passwordMatches", true);
+                UserRecord record = Database.getUser(uuid, name);
+                if(record != null) {
+                    tcn.set("found", true);
+                    try {
+                        record.service(serviceData).ok().await().data.set("data", JSON.read(data));
+                        tcn.set("set", true);
+                    } catch(Exception e) {}
+                }
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @POST
+    @Path("/api/service/[a-z]+/data/send")
+    public Response messageData(
+            Request request,
+            @PPathFragment(3) String service,
+            @PBody("uuid") String uuid,
+            @PBody("name") String name,
+            @PBody("servicePass") String servicePassword,
+            @PBody("data") String data
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("passwordMatches", false);
+        tcn.set("found", false);
+        tcn.set("set", false);
+        tcn.set("foundService", false);
+        if(Database.serviceExists(service)) {
+            tcn.set("foundService", true);
+            ServiceData serviceData = Database.service(service);
+            if(serviceData.getServicePassHash().equals(Hasher.sha512hex(Hasher.sha512hex(servicePassword)))) { 
+                tcn.set("passwordMatches", true);
+                UserRecord user = Database.getUser(uuid, name);
+                if(user != null) {
+                    tcn.set("found", true);
+                    try {
+                        ServiceRecord record = user.service(Database.service(service)).ok().await();
+                        record.message(JSON.read(data));
+                        tcn.set("set", true);
+                    } catch(Exception e) {}
+                }
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @POST
+    @Path("/api/service/[a-z]+/data/read")
+    public Response messageDataRead(
+            Request request,
+            @PPathFragment(3) String service,
+            @PBody("uuid") String uuid,
+            @PBody("name") String name,
+            @PBody("token") String keyHash
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("found", false);
+        tcn.set("accessGranted", false);
+        tcn.set("foundService", false);
+        if(Database.serviceExists(service)) {
+            tcn.set("foundService", true);
+            UserRecord user = Database.getUser(uuid, name);
+            if(user != null) {
+                tcn.set("found", true);
+                ServiceRecord record = user.service(Database.service(service)).ok().await();
+                if(record.decryptKey().toHashString().equals(keyHash)) {
+                    tcn.set("accessGranted", true);
+                    tcn.set("messages", record.data.getArray("dataMessages").clone());
+                    record.data.getArray("dataMessages").clear();
+                }
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
     @GET
     @Path("/api/service/[a-z]+")
     public Response getService(

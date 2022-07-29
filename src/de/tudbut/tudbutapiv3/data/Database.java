@@ -16,6 +16,7 @@ import tudbut.logger.Logger;
 import tudbut.parsing.AsyncJSON;
 import tudbut.parsing.JSON;
 import tudbut.parsing.TCN;
+import tudbut.parsing.TCNArray;
 import tudbut.tools.Lock;
 import tudbut.tools.encryption.RawKey;
 
@@ -24,7 +25,7 @@ public class Database {
     public static TCN data;
     public static boolean initialized = false;
     public static RawKey key;
-    public static int currentVersion = 3;
+    public static int currentVersion = 4;
 
     public static void initiailize() {
         if(initialized) {
@@ -124,13 +125,30 @@ public class Database {
             logger.info("[Load] Data migration from " + oldVersion + " to " + (oldVersion + 1) + " successful. " + modifications.get() + " modifications were made.");
             oldVersion++;
         }
+        if(oldVersion == 3) {
+            TCN tcn = data.getSub("users");
+            AtomicInteger modifications = new AtomicInteger(0);
+            tcn.map.entries().forEach(entry -> {
+                TCN user = (TCN) entry.val;
+                TCN services = user.getSub("services");
+                services.map.keys().forEach(key -> {
+                    services.getSub(key).set("data", new TCN());
+                    modifications.getAndIncrement();
+                    services.getSub(key).set("dataMessages", new TCNArray());
+                    modifications.getAndIncrement();
+                });
+            });
+            allModifications += modifications.get();
+            logger.info("[Load] Data migration from " + oldVersion + " to " + (oldVersion + 1) + " successful. " + modifications.get() + " modifications were made.");
+            oldVersion++;
+        }
         if(oldVersion == currentVersion) {
             logger.info("[Load] Data migration was successful. " + allModifications + " modifications were made. Thank you for your patience.");
         }
         data.set("version", currentVersion);
-	}
+    }
 
-	public static void save() {
+    public static void save() {
         synchronized(data) {
             String json = JSON.write(data);
             try {

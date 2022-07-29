@@ -30,8 +30,9 @@ public class ServiceRecord {
         this.data = data;
     }
 
-    public RawKey login() {
+    public RawKey login(String version) {
         RawKey key = new RawKey();
+        data.set("version", version);
         data.set("messageToken", Base64.getEncoder().encodeToString(Database.key.encryptString(key.toString()).getBytes()));
         // Clear messages so that there wont be any unobtainable ones
         data.getArray("messages").clear();
@@ -42,7 +43,7 @@ public class ServiceRecord {
         parent.online();
         if(data.getLong("lastUse") > System.currentTimeMillis() - 1500) {
             long l = System.currentTimeMillis() - data.getLong("lastUse");
-			data.set("useTime", data.getLong("useTime") + l);
+            data.set("useTime", data.getLong("useTime") + l);
             Database.service(data.getString("service")).use(l);
         }
         data.set("lastUse", System.currentTimeMillis());

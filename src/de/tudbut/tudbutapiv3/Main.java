@@ -18,7 +18,7 @@ import tudbut.logger.Logger;
 public class Main implements IRequestCatcher {
 
     RequestHandler listener = new RequestHandler(new Listener());
-	public static Logger logger = new Logger("TudbuT API v3");
+    public static Logger logger = new Logger("TudbuT API v3");
     
     public Main() {
         System.setOut(logger.infoAsStream());

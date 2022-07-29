@@ -30,7 +30,7 @@ public class ServiceData {
     }
 
     public ServiceRecord[] getUsers() {
-        TCNArray users = TCNArray.fromTCN(data.getSub("users"));
+        TCNArray users = data.getArray("users");
         ServiceRecord[] records = new ServiceRecord[users.size()];
         // records.length is faster than users.size()
         for(int i = 0; i < records.length; i++) {

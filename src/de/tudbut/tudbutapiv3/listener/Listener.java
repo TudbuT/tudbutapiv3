@@ -23,9 +23,9 @@ import de.tudbut.tudbutapiv3.data.Database;
 import de.tudbut.tudbutapiv3.data.ServiceData;
 import de.tudbut.tudbutapiv3.data.ServiceRecord;
 import de.tudbut.tudbutapiv3.data.UserRecord;
-import tudbut.net.http.serverimpl.Method.Post;
 import tudbut.parsing.JSON;
 import tudbut.parsing.TCN;
+import tudbut.parsing.TCNArray;
 import tudbut.tools.encryption.RawKey;
 
 public class Listener implements RequestHandler.Listener {
@@ -39,7 +39,9 @@ public class Listener implements RequestHandler.Listener {
     @GET
     @Path("/")
     public void onIndex(Request request, Callback<Response> res, Callback<Throwable> rej) {
-        Response r = new Response(request, request.context.file("index.html"), 200, "OK");
+        String indexData = request.context.file("index.html");
+        System.out.println(indexData);
+        Response r = new Response(request, indexData, 200, "OK");
         Document html = r.getHTML();
         Node node = html.createTextNode(request.fingerPrint());
         HTMLParsing.getElementById(html, "fingerprint").appendChild(node);
@@ -68,9 +70,10 @@ public class Listener implements RequestHandler.Listener {
             UserRecord user = Database.getUser(uuid, name);
             tcn.set("found", true);
             if(user != null) {
-                ServiceRecord record = user.service(Database.service(service)).ok().await();
+                ServiceData data = Database.service(service);
+                ServiceRecord record = user.service(data).ok().await();
                 record.use();
-                tcn.set("service", record.data);
+                tcn.set("service", data.data);
                 tcn.set("user", record.parent.data);
                 tcn.set("updated", true);
             }
@@ -143,7 +146,30 @@ public class Listener implements RequestHandler.Listener {
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
 
-    @Post
+    @GET
+    @Path("/api/service/[a-z]+/online")
+    public Response getServiceOnline(
+            Request request,
+            @PPathFragment(3) String service
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("found", false);
+        if(Database.serviceExists(service)) {
+            tcn.set("found", true);
+            int n = 0;
+            ServiceData data = Database.service(service);
+            ServiceRecord[] records = data.getUsers();
+            for(int i = 0; i < records.length; i++) {
+                if(records[i].data.getLong("lastUse") > System.currentTimeMillis() - 1500)
+                    n++;
+            }
+            tcn.set("service", data.data);
+            tcn.set("usersOnline", n);
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @POST
     @Path("/api/user/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/password")
     public Response setUserPass(
             Request request,
@@ -229,7 +255,8 @@ public class Listener implements RequestHandler.Listener {
             Request request,
             @PPathFragment(3) String service,
             @PBody("uuid") String uuid,
-            @PBody("name") String name
+            @PBody("name") String name,
+            @PBody("version") String version
     ) {
         TCN tcn = new TCN();
         tcn.set("found", false);
@@ -239,7 +266,7 @@ public class Listener implements RequestHandler.Listener {
             UserRecord user = Database.getUser(uuid, name);
             if(user != null) {
                 tcn.set("found", true);
-                RawKey key = user.service(Database.service(service)).ok().await().login();
+                RawKey key = user.service(Database.service(service)).ok().await().login(version);
                 tcn.set("key", key.toString());
                 tcn.set("token", key.toHashString());
                 tcn.set("user", user.data);
@@ -346,12 +373,12 @@ public class Listener implements RequestHandler.Listener {
         return new Response(request, String.valueOf(data.data.getLong("useTime") / 1000), 200, "OK", "text/txt");
     }
 
-	@Override
-	public void handleError(Request request, Throwable err, Callback<Response> res, Callback<Throwable> rej) {
+    @Override
+    public void handleError(Request request, Throwable err, Callback<Response> res, Callback<Throwable> rej) {
         TCN error = new TCN();
         err.printStackTrace();
         error.set("errorType", err.getClass().getName());
         res.call(new Response(request, JSON.write(error), 500, "Internal Server Error", "application/json"));
-	}
+    }
 
 }

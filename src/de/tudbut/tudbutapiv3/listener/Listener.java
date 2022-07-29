@@ -25,7 +25,6 @@ import de.tudbut.tudbutapiv3.data.ServiceRecord;
 import de.tudbut.tudbutapiv3.data.UserRecord;
 import tudbut.parsing.JSON;
 import tudbut.parsing.TCN;
-import tudbut.parsing.TCNArray;
 import tudbut.tools.encryption.RawKey;
 
 public class Listener implements RequestHandler.Listener {
@@ -188,7 +187,7 @@ public class Listener implements RequestHandler.Listener {
                     tcn.set("found", true);
                     try {
                         ServiceRecord record = user.service(Database.service(service)).ok().await();
-                        record.message(JSON.read(data));
+                        record.dataMessage(JSON.read(data));
                         tcn.set("set", true);
                     } catch(Exception e) {}
                 }
@@ -225,6 +224,7 @@ public class Listener implements RequestHandler.Listener {
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
+
     @GET
     @Path("/api/service/[a-z]+")
     public Response getService(

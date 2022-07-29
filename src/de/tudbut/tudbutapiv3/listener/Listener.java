@@ -40,7 +40,6 @@ public class Listener implements RequestHandler.Listener {
     @Path("/")
     public void onIndex(Request request, Callback<Response> res, Callback<Throwable> rej) {
         String indexData = request.context.file("index.html");
-        System.out.println(indexData);
         Response r = new Response(request, indexData, 200, "OK");
         Document html = r.getHTML();
         Node node = html.createTextNode(request.fingerPrint());

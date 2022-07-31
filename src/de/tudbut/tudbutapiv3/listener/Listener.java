@@ -145,7 +145,7 @@ public class Listener implements RequestHandler.Listener {
             tcn.set("found", true);
             ServiceData serviceData = Database.service(service);
             if(serviceData.getServicePassHash().equals(Hasher.sha512hex(Hasher.sha512hex(servicePassword)))) { 
-                serviceData.data.set("allow", allow.equals("true"));
+                serviceData.data.set("allowChat", allow.equals("true"));
                 tcn.set("set", true);
             }
         }

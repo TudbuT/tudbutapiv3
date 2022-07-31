@@ -19,6 +19,7 @@ import de.tudbut.tryumph.server.HTMLParsing;
 import de.tudbut.tryumph.server.Header;
 import de.tudbut.tryumph.server.Request;
 import de.tudbut.tryumph.server.Response;
+import de.tudbut.tudbutapiv3.auth.AuthManager;
 import de.tudbut.tudbutapiv3.data.Database;
 import de.tudbut.tudbutapiv3.data.ServiceData;
 import de.tudbut.tudbutapiv3.data.ServiceRecord;
@@ -268,7 +269,7 @@ public class Listener implements RequestHandler.Listener {
     public Response setUserPass(
             Request request,
             @PPathFragment(3) String user,
-            @PBody("password") String password,
+            @PBody("token") String authToken,
             @PBody("new") String newPass
     ) {
         TCN tcn = new TCN();
@@ -277,7 +278,8 @@ public class Listener implements RequestHandler.Listener {
         UserRecord record = Database.getUser(UUID.fromString(user), false);
         if(record != null) {
             tcn.set("found", true);
-            if(Database.data.getString("password").equals(Hasher.sha512hex(Hasher.sha512hex(password)))) {
+            AuthManager manager = AuthManager.get(UUID.fromString(user));
+            if(manager != null && manager.token.equals(authToken)) {
                 tcn.set("set", true);
                 record.data.set("passwordHash", Hasher.sha512hex(Hasher.sha512hex(newPass)));
                 tcn.set("user", record.data);
@@ -465,6 +467,28 @@ public class Listener implements RequestHandler.Listener {
             return new Response(request, "Service not found", 400, "Service does not exist", "text/txt");
         }
         return new Response(request, String.valueOf(data.data.getLong("useTime") / 1000), 200, "OK", "text/txt");
+    }
+
+    @POST
+    @Path("/api/auth/delete")
+    public Response unauthorize(
+            Request request,
+            @PBody("uuid") String user,
+            @PBody("token") String authToken
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("found", false);
+        tcn.set("set", false);
+        UserRecord record = Database.getUser(UUID.fromString(user), false);
+        if(record != null) {
+            tcn.set("found", true);
+            AuthManager manager = AuthManager.get(UUID.fromString(user));
+            if(manager != null && manager.token.equals(authToken)) {
+                manager.delete();
+                tcn.set("set", true);
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
 
     @Override

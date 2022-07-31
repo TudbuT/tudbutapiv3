@@ -12,12 +12,14 @@ import de.tudbut.tryumph.events.RequestHandler;
 import de.tudbut.tryumph.server.Request;
 import de.tudbut.tryumph.server.Response;
 import de.tudbut.tudbutapiv3.data.Database;
+import de.tudbut.tudbutapiv3.listener.GameAuthenticationListener;
 import de.tudbut.tudbutapiv3.listener.Listener;
 import tudbut.logger.Logger;
 
 public class Main implements IRequestCatcher {
 
     RequestHandler listener = new RequestHandler(new Listener());
+    RequestHandler gameAuthHandler = new RequestHandler(new GameAuthenticationListener());
     public static Logger logger = new Logger("TudbuT API v3");
     
     public Main() {
@@ -45,10 +47,10 @@ public class Main implements IRequestCatcher {
                 }
                 res.call(r);
             }, rej);
+            gameAuthHandler.handle(req, res, rej);
             if(!req.hasResponse()) {
                 res.call(new Response(req, "<h1>Error: 404 Not found " + req.realPath + "</h1>", 404, "Not Found"));
             }
-
         });
     }
 

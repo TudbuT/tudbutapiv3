@@ -47,6 +47,13 @@ public class Listener implements RequestHandler.Listener {
         r.updateHTMLData();
         res.call(r);
     }
+    @GET
+    @Path("/game-auth")
+    public void onGameAuthHTML(Request request, Callback<Response> res, Callback<Throwable> rej) {
+        String data = request.context.file("game-auth.html");
+        Response r = new Response(request, data, 200, "OK");
+        res.call(r);
+    }
 
     Response redirect(Request req, String path) {
         Response r = new Response(req, "Redirecting...", 302, "Moved Temporarily");

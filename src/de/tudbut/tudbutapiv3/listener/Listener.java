@@ -109,7 +109,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("uuid") String uuid,
             @PBody("name") String name,
             @PBody("servicePass") String servicePassword,
-            @PBody("status") int status
+            @PBody("status") Integer status
     ) {
         TCN tcn = new TCN();
         tcn.set("passwordMatches", false);

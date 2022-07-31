@@ -136,7 +136,7 @@ public class Listener implements RequestHandler.Listener {
             Request request,
             @PPathFragment(3) String service,
             @PBody("servicePass") String servicePassword,
-            @PBody("allow") boolean allow
+            @PBody("allow") String allow
     ) {
         TCN tcn = new TCN();
         tcn.set("set", false);
@@ -145,7 +145,7 @@ public class Listener implements RequestHandler.Listener {
             tcn.set("found", true);
             ServiceData serviceData = Database.service(service);
             if(serviceData.getServicePassHash().equals(Hasher.sha512hex(Hasher.sha512hex(servicePassword)))) { 
-                serviceData.data.set("allow", allow);
+                serviceData.data.set("allow", allow.equals("true"));
                 tcn.set("set", true);
             }
         }

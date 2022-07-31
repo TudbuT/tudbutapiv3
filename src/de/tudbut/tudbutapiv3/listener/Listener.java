@@ -1,5 +1,6 @@
 package de.tudbut.tudbutapiv3.listener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -26,6 +27,7 @@ import de.tudbut.tudbutapiv3.data.ServiceRecord;
 import de.tudbut.tudbutapiv3.data.UserRecord;
 import tudbut.parsing.JSON;
 import tudbut.parsing.TCN;
+import tudbut.parsing.TCNArray;
 import tudbut.tools.encryption.RawKey;
 
 public class Listener implements RequestHandler.Listener {
@@ -313,12 +315,19 @@ public class Listener implements RequestHandler.Listener {
             int n = 0;
             ServiceData data = Database.service(service);
             ServiceRecord[] records = data.getUsers();
+            ArrayList<String> onlineUUIDs = new ArrayList<>();
+            ArrayList<String> onlineNames = new ArrayList<>();
             for(int i = 0; i < records.length; i++) {
-                if(records[i].data.getLong("lastUse") > System.currentTimeMillis() - 1500)
+                if(records[i].data.getLong("lastUse") > System.currentTimeMillis() - 1500) {
                     n++;
+                    onlineUUIDs.add(records[i].parent.uuid.toString());
+                    onlineNames.add(records[i].parent.data.getString("name"));
+                }
             }
             tcn.set("service", data.data);
             tcn.set("usersOnline", n);
+            tcn.set("uuids", new TCNArray(onlineUUIDs));
+            tcn.set("names", new TCNArray(onlineNames));
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }

@@ -25,7 +25,7 @@ public class Database {
     public static TCN data;
     public static boolean initialized = false;
     public static RawKey key;
-    public static int currentVersion = 4;
+    public static int currentVersion = 5;
 
     public static void initiailize() {
         if(initialized) {
@@ -137,6 +137,18 @@ public class Database {
                     services.getSub(key).set("dataMessages", new TCNArray());
                     modifications.getAndIncrement();
                 });
+            });
+            allModifications += modifications.get();
+            logger.info("[Load] Data migration from " + oldVersion + " to " + (oldVersion + 1) + " successful. " + modifications.get() + " modifications were made.");
+            oldVersion++;
+        }
+        if(oldVersion == 4) {
+            TCN tcn = data.getSub("services");
+            AtomicInteger modifications = new AtomicInteger(0);
+            tcn.map.entries().forEach(entry -> {
+                TCN service = (TCN) entry.val;
+                service.set("allowChat", false);
+                modifications.getAndIncrement();
             });
             allModifications += modifications.get();
             logger.info("[Load] Data migration from " + oldVersion + " to " + (oldVersion + 1) + " successful. " + modifications.get() + " modifications were made.");

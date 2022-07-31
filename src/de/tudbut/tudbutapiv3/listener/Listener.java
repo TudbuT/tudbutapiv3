@@ -131,6 +131,28 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
+    @Path("/api/service/[a-z]+/allowChat")
+    public Response setServiceAllowChat(
+            Request request,
+            @PPathFragment(3) String service,
+            @PBody("servicePass") String servicePassword,
+            @PBody("allowChat") boolean allow
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("set", false);
+        tcn.set("found", false);
+        if(Database.serviceExists(service)) {
+            tcn.set("found", true);
+            ServiceData serviceData = Database.service(service);
+            if(serviceData.getServicePassHash().equals(Hasher.sha512hex(Hasher.sha512hex(servicePassword)))) { 
+                serviceData.data.set("allowChat", allow);
+                tcn.set("set", true);
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @POST
     @Path("/api/service/[a-z]+/data/set")
     public Response setServiceData(
             Request request,
@@ -164,8 +186,38 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
+    @Path("/api/service/[a-z]+/data/sendAll")
+    public Response messageDataAll(
+            Request request,
+            @PPathFragment(3) String service,
+            @PBody("servicePass") String servicePassword,
+            @PBody("data") String data
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("passwordMatches", false);
+        tcn.set("set", false);
+        tcn.set("found", false);
+        if(Database.serviceExists(service)) {
+            tcn.set("found", true);
+            ServiceData serviceData = Database.service(service);
+            if(serviceData.getServicePassHash().equals(Hasher.sha512hex(Hasher.sha512hex(servicePassword)))) { 
+                tcn.set("passwordMatches", true);
+                for(ServiceRecord record : serviceData.getUsers()) {
+                    if(record.data.getLong("lastUse") > System.currentTimeMillis() - 1500) {
+                        try {
+                            record.dataMessage(JSON.read(data));
+                            tcn.set("set", true);
+                        } catch(Exception e) {}
+                    }
+                }
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @POST
     @Path("/api/service/[a-z]+/data/send")
-    public Response messageData(
+    public Response messageDataAll(
             Request request,
             @PPathFragment(3) String service,
             @PBody("uuid") String uuid,
@@ -407,6 +459,43 @@ public class Listener implements RequestHandler.Listener {
                         msg.set("from", user.data);
                         msg.set("content", message);
                         otherRecord.message(msg);
+                    }
+                }
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+    @POST
+    @Path("/api/service/[a-z]+/messageAll")
+    public Response message(
+            Request request,
+            @PPathFragment(3) String service,
+            @PBody("uuid") String uuid,
+            @PBody("name") String name,
+            @PBody("token") String keyHash,
+            @PBody("message") String message
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("accessGranted", false);
+        tcn.set("found", false);
+        tcn.set("foundService", false);
+        if(Database.serviceExists(service)) {
+            tcn.set("foundService", true);
+            UserRecord user = Database.getUser(uuid, name);
+            if(user != null) {
+                tcn.set("found", true);
+                ServiceRecord record = user.service(Database.service(service)).ok().await();
+                ServiceData data = Database.service(service);
+                if(record.decryptKey().toHashString().equals(keyHash) && data.data.getBoolean("allowChat")) {
+                    tcn.set("accessGranted", true);
+                    for(ServiceRecord otherRecord : data.getUsers()) {
+                        if(otherRecord.data.getLong("lastUse") > System.currentTimeMillis() - 1500) {
+                            TCN msg = new TCN();
+                            msg.set("fromUUID", user.uuid.toString());
+                            msg.set("from", user.data);
+                            msg.set("content", message);
+                            otherRecord.message(msg);
+                        }
                     }
                 }
             }

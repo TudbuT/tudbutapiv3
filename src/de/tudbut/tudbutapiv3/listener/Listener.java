@@ -25,6 +25,7 @@ import de.tudbut.tudbutapiv3.data.Database;
 import de.tudbut.tudbutapiv3.data.ServiceData;
 import de.tudbut.tudbutapiv3.data.ServiceRecord;
 import de.tudbut.tudbutapiv3.data.UserRecord;
+import sun.tools.jconsole.TimeComboBox;
 import tudbut.parsing.JSON;
 import tudbut.parsing.TCN;
 import tudbut.parsing.TCNArray;
@@ -72,6 +73,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("name") String name
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("found", false);
         tcn.set("updated", false);
         if(Database.serviceExists(service)) {
@@ -84,6 +86,7 @@ public class Listener implements RequestHandler.Listener {
                 tcn.set("service", data.data);
                 tcn.set("user", record.parent.data);
                 tcn.set("updated", true);
+                tcn.set("success", true);
             }
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
@@ -98,6 +101,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("servicePass") String servicePassword
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("passwordMatches", false);
         tcn.set("created", false);
         if(Database.data.getString("password").equals(Hasher.sha512hex(Hasher.sha512hex(password)))) { 
@@ -105,6 +109,7 @@ public class Listener implements RequestHandler.Listener {
             if(!Database.serviceExists(service)) {
                 tcn.set("created", true);
                 Database.makeService(service, servicePassword);
+                tcn.set("success", true);
             }
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
@@ -121,6 +126,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("status") Integer status
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("passwordMatches", false);
         tcn.set("found", false);
         tcn.set("foundService", false);
@@ -133,6 +139,7 @@ public class Listener implements RequestHandler.Listener {
                 if(record != null) {
                     tcn.set("found", true);
                     record.service(serviceData).ok().await().data.set("premiumStatus", status);
+                    tcn.set("success", true);
                 }
             }
         }
@@ -148,6 +155,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("allow") Boolean allow
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("set", false);
         tcn.set("found", false);
         if(Database.serviceExists(service)) {
@@ -156,6 +164,7 @@ public class Listener implements RequestHandler.Listener {
             if(serviceData.getServicePassHash().equals(Hasher.sha512hex(Hasher.sha512hex(servicePassword)))) { 
                 serviceData.data.set("allowChat", allow);
                 tcn.set("set", true);
+                tcn.set("success", true);
             }
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
@@ -172,6 +181,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("data") String data
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("passwordMatches", false);
         tcn.set("found", false);
         tcn.set("set", false);
@@ -187,6 +197,7 @@ public class Listener implements RequestHandler.Listener {
                     try {
                         record.service(serviceData).ok().await().data.set("data", JSON.read(data));
                         tcn.set("set", true);
+                        tcn.set("success", true);
                     } catch(Exception e) {}
                 }
             }
@@ -203,6 +214,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("data") String data
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("passwordMatches", false);
         tcn.set("set", false);
         tcn.set("found", false);
@@ -216,6 +228,7 @@ public class Listener implements RequestHandler.Listener {
                         try {
                             record.dataMessage(JSON.read(data));
                             tcn.set("set", true);
+                            tcn.set("success", true);
                         } catch(Exception e) {}
                     }
                 }
@@ -235,6 +248,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("data") String data
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("passwordMatches", false);
         tcn.set("found", false);
         tcn.set("set", false);
@@ -251,6 +265,7 @@ public class Listener implements RequestHandler.Listener {
                         ServiceRecord record = user.service(Database.service(service)).ok().await();
                         record.dataMessage(JSON.read(data));
                         tcn.set("set", true);
+                        tcn.set("success", true);
                     } catch(Exception e) {}
                 }
             }
@@ -268,6 +283,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("token") String keyHash
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("found", false);
         tcn.set("accessGranted", false);
         tcn.set("foundService", false);
@@ -281,6 +297,7 @@ public class Listener implements RequestHandler.Listener {
                     tcn.set("accessGranted", true);
                     tcn.set("messages", record.data.getArray("dataMessages").clone());
                     record.data.getArray("dataMessages").clear();
+                    tcn.set("success", true);
                 }
             }
         }
@@ -294,10 +311,12 @@ public class Listener implements RequestHandler.Listener {
             @PPathFragment(3) String service
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("found", false);
         if(Database.serviceExists(service)) {
             tcn.set("found", true);
             tcn.set("service", Database.service(service).data);
+            tcn.set("success", true);
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
@@ -309,6 +328,7 @@ public class Listener implements RequestHandler.Listener {
             @PPathFragment(3) String service
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("found", false);
         if(Database.serviceExists(service)) {
             tcn.set("found", true);
@@ -328,6 +348,7 @@ public class Listener implements RequestHandler.Listener {
             tcn.set("usersOnline", n);
             tcn.set("uuids", new TCNArray(onlineUUIDs));
             tcn.set("names", new TCNArray(onlineNames));
+            tcn.set("success", true);
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
@@ -341,6 +362,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("new") String newPass
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("found", false);
         tcn.set("set", false);
         UserRecord record = Database.getUser(UUID.fromString(user), false);
@@ -352,6 +374,7 @@ public class Listener implements RequestHandler.Listener {
                 record.data.set("passwordHash", Hasher.sha512hex(Hasher.sha512hex(newPass)));
                 tcn.set("user", record.data);
                 tcn.set("uuid", record.uuid.toString());
+                tcn.set("success", true);
             }
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
@@ -366,6 +389,7 @@ public class Listener implements RequestHandler.Listener {
             @PQuery("new") String newPass
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("found", false);
         tcn.set("set", false);
         UserRecord record = Database.getUser(UUID.fromString(user), false);
@@ -376,6 +400,7 @@ public class Listener implements RequestHandler.Listener {
                 record.data.set("passwordHash", Hasher.sha512hex(Hasher.sha512hex(newPass)));
                 tcn.set("user", record.data);
                 tcn.set("uuid", record.uuid.toString());
+                tcn.set("success", true);
             }
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
@@ -387,12 +412,14 @@ public class Listener implements RequestHandler.Listener {
             @PPathFragment(3) String user
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("found", false);
         UserRecord record = Database.getUser(UUID.fromString(user), request.method.equals("POST"));
         if(record != null) {
             tcn.set("found", true);
             tcn.set("user", record.data);
             tcn.set("uuid", record.uuid.toString());
+            tcn.set("success", true);
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
@@ -403,12 +430,14 @@ public class Listener implements RequestHandler.Listener {
             @PPathFragment(3) String user
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("found", false);
         UserRecord record = Database.getUser(null, user, request.method.equals("POST"));
         if(record != null) {
             tcn.set("found", true);
             tcn.set("user", record.data);
             tcn.set("uuid", record.uuid.toString());
+            tcn.set("success", true);
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
@@ -423,6 +452,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("version") String version
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("found", false);
         tcn.set("foundService", false);
         if(Database.serviceExists(service)) {
@@ -434,7 +464,7 @@ public class Listener implements RequestHandler.Listener {
                 tcn.set("key", key.toString());
                 tcn.set("token", key.toHashString());
                 tcn.set("user", user.data);
-                
+                tcn.set("success", true);
             }
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
@@ -454,6 +484,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("message") String message
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("found", false);
         tcn.set("accessGranted", false);
         tcn.set("foundYou", false);
@@ -475,6 +506,7 @@ public class Listener implements RequestHandler.Listener {
                         msg.set("from", user.data);
                         msg.set("content", message);
                         otherRecord.message(msg);
+                        tcn.set("success", true);
                     }
                 }
             }
@@ -492,6 +524,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("message") String message
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("accessGranted", false);
         tcn.set("found", false);
         tcn.set("foundService", false);
@@ -511,6 +544,7 @@ public class Listener implements RequestHandler.Listener {
                             msg.set("from", user.data);
                             msg.set("content", message);
                             otherRecord.message(msg);
+                            tcn.set("success", true);
                         }
                     }
                 }
@@ -529,6 +563,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("token") String keyHash
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("found", false);
         tcn.set("accessGranted", false);
         tcn.set("foundService", false);
@@ -542,6 +577,7 @@ public class Listener implements RequestHandler.Listener {
                     tcn.set("accessGranted", true);
                     tcn.set("messages", record.data.getArray("messages").clone());
                     record.data.getArray("messages").clear();
+                    tcn.set("success", true);
                 }
             }
         }
@@ -582,6 +618,7 @@ public class Listener implements RequestHandler.Listener {
             @PBody("token") String authToken
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("found", false);
         tcn.set("set", false);
         UserRecord record = Database.getUser(UUID.fromString(user), false);
@@ -591,6 +628,7 @@ public class Listener implements RequestHandler.Listener {
             if(manager != null && manager.token.equals(authToken)) {
                 manager.delete();
                 tcn.set("set", true);
+                tcn.set("success", true);
             }
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
@@ -601,6 +639,7 @@ public class Listener implements RequestHandler.Listener {
         TCN error = new TCN();
         err.printStackTrace();
         error.set("errorType", err.getClass().getName());
+        error.set("success", false);
         res.call(new Response(request, JSON.write(error), 500, "Internal Server Error", "application/json"));
     }
 

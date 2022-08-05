@@ -26,12 +26,14 @@ public class GameAuthenticationListener implements RequestHandler.Listener {
             @PBody("name") String name
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("found", false);
         UserRecord user = Database.getUser(uuid, name);
         if(user != null) {
             GameAuthentication auth = GameAuthentication.get(UUID.fromString(uuid), name);
             tcn.set("found", true);
             tcn.set("serverToJoin", auth.getServerToJoin());
+            tcn.set("success", true);
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
@@ -43,6 +45,7 @@ public class GameAuthenticationListener implements RequestHandler.Listener {
             @PBody("uuid") String uuid
     ) {
         TCN tcn = new TCN();
+        tcn.set("success", false);
         tcn.set("found", false);
         tcn.set("success", false);
         UserRecord user = Database.getUser(UUID.fromString(uuid));
@@ -54,6 +57,7 @@ public class GameAuthenticationListener implements RequestHandler.Listener {
                 tcn.set("success", b);
                 if(b) {
                     tcn.set("token", AuthManager.create(UUID.fromString(uuid)).token);
+                    tcn.set("success", true);
                 }
             }
         }
@@ -65,6 +69,7 @@ public class GameAuthenticationListener implements RequestHandler.Listener {
         TCN error = new TCN();
         err.printStackTrace();
         error.set("errorType", err.getClass().getName());
+        error.set("success", false);
         res.call(new Response(request, JSON.write(error), 500, "Internal Server Error", "application/json"));
     }
 

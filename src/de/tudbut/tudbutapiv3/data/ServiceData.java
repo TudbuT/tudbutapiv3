@@ -19,6 +19,7 @@ public class ServiceData {
         data.set("useTime", 0L);
         data.set("password", Base64.getEncoder().encodeToString(Database.key.encryptString(Hasher.sha512hex(Hasher.sha512hex(servicePassword))).getBytes()));
         data.set("allowChat", false);
+        data.set("data", new TCN());
     }
 
     public String getServicePassHash() {

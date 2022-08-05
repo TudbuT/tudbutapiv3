@@ -171,7 +171,7 @@ public class Listener implements RequestHandler.Listener {
 
     @POST
     @Path("/api/service/[a-z]+/data/set")
-    public Response setServiceData(
+    public Response setUserServiceData(
             Request request,
             @PPathFragment(3) String service,
             @PBody("uuid") String uuid,
@@ -199,6 +199,35 @@ public class Listener implements RequestHandler.Listener {
                         tcn.set("success", true);
                     } catch(Exception e) {}
                 }
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @POST
+    @Path("/api/service/[a-z]+/data")
+    public Response setServiceData(
+            Request request,
+            @PPathFragment(3) String service,
+            @PBody("servicePass") String servicePassword,
+            @PBody("data") String data
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("success", false);
+        tcn.set("passwordMatches", false);
+        tcn.set("set", false);
+        tcn.set("found", false);
+        if(Database.serviceExists(service)) {
+            tcn.set("foundService", true);
+            ServiceData serviceData = Database.service(service);
+            if(serviceData.getServicePassHash().equals(Hasher.sha512hex(Hasher.sha512hex(servicePassword)))) { 
+                tcn.set("passwordMatches", true);
+                tcn.set("found", true);
+                try {
+                    serviceData.data.set("data", JSON.read(data));
+                    tcn.set("set", true);
+                    tcn.set("success", true);
+                } catch(Exception e) {}
             }
         }
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");

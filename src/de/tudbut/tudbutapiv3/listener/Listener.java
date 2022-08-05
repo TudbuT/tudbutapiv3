@@ -494,7 +494,7 @@ public class Listener implements RequestHandler.Listener {
             if(user != null) {
                 tcn.set("foundYou", true);
                 ServiceRecord record = user.service(Database.service(service)).ok().await();
-                if(record.decryptKey().toHashString().equals(keyHash)) {
+                if(record.decryptKey().toHashString().equals(keyHash) && record.data.getLong("lastMessageSent") < System.currentTimeMillis() - 500) {
                     tcn.set("accessGranted", true);
                     UserRecord otherUser = Database.getUser(ouuid, oname, false);
                     if(otherUser != null) {
@@ -505,6 +505,7 @@ public class Listener implements RequestHandler.Listener {
                         msg.set("from", user.data);
                         msg.set("content", message);
                         msg.set("global", false);
+                        record.data.set("lastMessageSent", System.currentTimeMillis());
                         otherRecord.message(msg);
                         tcn.set("success", true);
                     }
@@ -533,9 +534,9 @@ public class Listener implements RequestHandler.Listener {
             UserRecord user = Database.getUser(uuid, name);
             if(user != null) {
                 tcn.set("found", true);
-                ServiceRecord record = user.service(Database.service(service)).ok().await();
                 ServiceData data = Database.service(service);
-                if(record.decryptKey().toHashString().equals(keyHash) && data.data.getBoolean("allowChat")) {
+                ServiceRecord record = user.service(data).ok().await();
+                if(record.decryptKey().toHashString().equals(keyHash) && data.data.getBoolean("allowChat") && record.data.getLong("lastMessageSent") < System.currentTimeMillis() - 1000) {
                     tcn.set("accessGranted", true);
                     for(ServiceRecord otherRecord : data.getUsers()) {
                         if(otherRecord.data.getLong("lastUse") > System.currentTimeMillis() - 1500) {
@@ -544,6 +545,7 @@ public class Listener implements RequestHandler.Listener {
                             msg.set("from", user.data);
                             msg.set("content", message);
                             msg.set("global", true);
+                            record.data.set("lastMessageSent", System.currentTimeMillis());
                             otherRecord.message(msg);
                             tcn.set("success", true);
                         }

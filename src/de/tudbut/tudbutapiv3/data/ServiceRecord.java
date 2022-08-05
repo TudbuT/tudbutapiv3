@@ -24,6 +24,7 @@ public class ServiceRecord {
         data.set("dataMessages", new TCNArray());
         data.set("version", "v0.0.0a");
         data.set("premiumStatus", 0);
+        data.set("lastMessageSent", System.currentTimeMillis());
         data.set("data", new TCN());
     }
 

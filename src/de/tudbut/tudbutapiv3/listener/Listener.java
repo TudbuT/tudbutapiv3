@@ -504,6 +504,7 @@ public class Listener implements RequestHandler.Listener {
                         msg.set("fromUUID", user.uuid.toString());
                         msg.set("from", user.data);
                         msg.set("content", message);
+                        msg.set("global", false);
                         otherRecord.message(msg);
                         tcn.set("success", true);
                     }
@@ -542,6 +543,7 @@ public class Listener implements RequestHandler.Listener {
                             msg.set("fromUUID", user.uuid.toString());
                             msg.set("from", user.data);
                             msg.set("content", message);
+                            msg.set("global", true);
                             otherRecord.message(msg);
                             tcn.set("success", true);
                         }

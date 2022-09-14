@@ -16,7 +16,7 @@ public class NameFetcher {
         return Async.
             <TCN>t((res, rej) -> {
                 try {
-                    URL url = new URL("GET https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
+                    URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
                     StreamReader reader = new StreamReader(url.openStream());
                     AsyncJSON.read(reader.readAllAsString()).err(e -> rej.call(e)).then(res).ok();
                 } catch (IOException e) {

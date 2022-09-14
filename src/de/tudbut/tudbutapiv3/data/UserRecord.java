@@ -38,7 +38,7 @@ public class UserRecord {
         Database.data.getSub("nameToUUID").set(name, uuid.toString());
     }
 
-	public Task<String> getName() {
+    public Task<String> getName() {
         return t((res, rej) -> {
             if(data.getLong("lastNameFetch") < System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000) {
                 NameFetcher.fetch(uuid).then(x -> {
@@ -48,7 +48,7 @@ public class UserRecord {
             }
             res.call(data.getString("name"));
         });
-	}
+    }
 
     public Task<ServiceRecord[]> getServices() {
         return t((res, rej) -> {

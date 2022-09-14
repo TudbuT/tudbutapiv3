@@ -9,7 +9,6 @@ import de.tudbut.async.Task;
 import de.tudbut.io.StreamReader;
 import tudbut.parsing.AsyncJSON;
 import tudbut.parsing.TCN;
-import tudbut.parsing.TCNArray;
 
 public class NameFetcher {
 
@@ -17,7 +16,7 @@ public class NameFetcher {
         return Async.
             <TCN>t((res, rej) -> {
                 try {
-                    URL url = new URL("https://api.mojang.com/user/profiles/" + uuid + "/names");
+                    URL url = new URL("GET https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
                     StreamReader reader = new StreamReader(url.openStream());
                     AsyncJSON.read(reader.readAllAsString()).err(e -> rej.call(e)).then(res).ok();
                 } catch (IOException e) {
@@ -25,10 +24,7 @@ public class NameFetcher {
                 }
             })
             .compose((resp, res, rej) -> {
-                TCNArray arr = TCNArray.fromTCN(resp);
-                if(arr.size() == 0)
-                    rej.call(new NameNotFound());
-                res.call(arr.getSub(arr.size() - 1).getString("name"));
+                res.call(resp.getString("name"));
             });
     }
 

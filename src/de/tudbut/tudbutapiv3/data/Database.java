@@ -25,7 +25,7 @@ public class Database {
     public static TCN data;
     public static boolean initialized = false;
     public static RawKey key;
-    public static int currentVersion = 7;
+    public static int currentVersion = 8;
 
     public static void initiailize() {
         if(initialized) {
@@ -176,6 +176,20 @@ public class Database {
                 TCN service = (TCN) entry.val;
                 service.set("data", new TCN());
                 modifications.getAndIncrement();
+            });
+            allModifications += modifications.get();
+            logger.info("[Load] Data migration from " + oldVersion + " to " + (oldVersion + 1) + " successful. " + modifications.get() + " modifications were made.");
+            oldVersion++;
+        }
+        if(oldVersion == 7) {
+            TCN tcn = data.getSub("users");
+            AtomicInteger modifications = new AtomicInteger(0);
+            tcn.map.entries().forEach(entry -> {
+                TCN user = (TCN) entry.val;
+                if(user.getString("name").startsWith("FETCH_ERROR_")) {
+                    user.set("lastNameFetch", 0);
+                    modifications.getAndIncrement();
+                }
             });
             allModifications += modifications.get();
             logger.info("[Load] Data migration from " + oldVersion + " to " + (oldVersion + 1) + " successful. " + modifications.get() + " modifications were made.");

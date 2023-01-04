@@ -64,7 +64,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
-    @Path("/api/service/[a-z]+/use")
+    @Path("/api/service/[a-z_]+/use")
     public Response useService(
             Request request, 
             @PPathFragment(3) String service, 
@@ -92,7 +92,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
-    @Path("/api/service/[a-z]+/create")
+    @Path("/api/service/[a-z_]+/create")
     public Response createService(
             Request request,
             @PPathFragment(3) String service,
@@ -115,7 +115,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
-    @Path("/api/service/[a-z]+/delete")
+    @Path("/api/service/[a-z_]+/delete")
     public Response deleteService(
             Request request,
             @PPathFragment(3) String service,
@@ -137,7 +137,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
-    @Path("/api/service/[a-z]+/rename")
+    @Path("/api/service/[a-z_]+/rename")
     public Response renameService(
             Request request,
             @PPathFragment(3) String service,
@@ -160,7 +160,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
-    @Path("/api/service/[a-z]+/setPremium")
+    @Path("/api/service/[a-z_]+/setPremium")
     public Response setPremium(
             Request request,
             @PPathFragment(3) String service,
@@ -191,7 +191,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
-    @Path("/api/service/[a-z]+/allowChat")
+    @Path("/api/service/[a-z_]+/allowChat")
     public Response setServiceAllowChat(
             Request request,
             @PPathFragment(3) String service,
@@ -215,7 +215,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
-    @Path("/api/service/[a-z]+/data/set")
+    @Path("/api/service/[a-z_]+/data/set")
     public Response setUserServiceData(
             Request request,
             @PPathFragment(3) String service,
@@ -250,7 +250,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
-    @Path("/api/service/[a-z]+/data")
+    @Path("/api/service/[a-z_]+/data")
     public Response setServiceData(
             Request request,
             @PPathFragment(3) String service,
@@ -279,7 +279,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
-    @Path("/api/service/[a-z]+/data/sendAll")
+    @Path("/api/service/[a-z_]+/data/sendAll")
     public Response messageDataAll(
             Request request,
             @PPathFragment(3) String service,
@@ -311,7 +311,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
-    @Path("/api/service/[a-z]+/data/send")
+    @Path("/api/service/[a-z_]+/data/send")
     public Response messageDataAll(
             Request request,
             @PPathFragment(3) String service,
@@ -347,7 +347,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
-    @Path("/api/service/[a-z]+/data/read")
+    @Path("/api/service/[a-z_]+/data/read")
     public Response messageDataRead(
             Request request,
             @PPathFragment(3) String service,
@@ -378,7 +378,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @GET
-    @Path("/api/service/[a-z]+")
+    @Path("/api/service/[a-z_]+")
     public Response getService(
             Request request,
             @PPathFragment(3) String service
@@ -395,7 +395,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @GET
-    @Path("/api/service/[a-z]+/online")
+    @Path("/api/service/[a-z_]+/online")
     public Response getServiceOnline(
             Request request,
             @PPathFragment(3) String service
@@ -516,7 +516,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
-    @Path("/api/service/[a-z]+/login")
+    @Path("/api/service/[a-z_]+/login")
     public Response login(
             Request request,
             @PPathFragment(3) String service,
@@ -545,7 +545,7 @@ public class Listener implements RequestHandler.Listener {
 
     // To decrypt a message: parseJSON(key.decryptString(decodeB64(messageString))))
     @POST
-    @Path("/api/service/[a-z]+/message")
+    @Path("/api/service/[a-z_]+/message")
     public Response message(
             Request request,
             @PPathFragment(3) String service,
@@ -589,7 +589,7 @@ public class Listener implements RequestHandler.Listener {
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
     @POST
-    @Path("/api/service/[a-z]+/messageAll")
+    @Path("/api/service/[a-z_]+/messageAll")
     public Response message(
             Request request,
             @PPathFragment(3) String service,
@@ -631,7 +631,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
-    @Path("/api/service/[a-z]+/message/read")
+    @Path("/api/service/[a-z_]+/message/read")
     public Response messageRead(
             Request request,
             @PPathFragment(3) String service,
@@ -662,7 +662,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @GET
-    @Path("/api/service/[a-z]+/usetime")
+    @Path("/api/service/[a-z_]+/usetime")
     public Response getUsetime(
             Request request,
             @PPathFragment(3) String service
@@ -675,7 +675,7 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @GET
-    @Path("/api/service/[a-z]+/usetime/seconds")
+    @Path("/api/service/[a-z_]+/usetime/seconds")
     public Response getUsetimeSecs(
             Request request,
             @PPathFragment(3) String service

@@ -303,6 +303,7 @@ public class Database {
             TCN user = (TCN) entry.val;
             TCN services = user.getSub("services");
             if(services.get(name) != null) {
+                services.getSub(name).set("service", newName);
                 services.set(newName, services.get(name));
                 services.set(name, null);
                 modifications.getAndIncrement();

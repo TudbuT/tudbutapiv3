@@ -1,0 +1,78 @@
+<title>TudbuTAPIv3 Documentation</title>
+<h1>TudbuTAPIv3 Documentation</h1>
+
+TudbuTAPIv3 is an API for Minecraft client modifications, used to track usage,
+authenticate users, and deliver direct or client-wide messages.<br>
+<br>
+<b><a href="https://github.com/tudbut/de.tudbut.api">Primary implementation</a></b>
+
+<h2>Method summary</h2>
+
+API base path: /api
+
+<h3 id="main">Main methods</h3>
+
+<a href="#main-content">Jump to content</a>
+
+<ul>
+    <li>POST /service/[service_name: str]/login { uuid: UUID, version: str }</li>
+    <li>POST /service/[service_name: str]/use { uuid: UUID }</li>
+    <li>POST /service/[service_name: str]/message { uuid: UUID, nameOther: str, 
+        token: str, message: str }</li>
+    <li>POST /service/[service_name: str]/message { uuid: UUID, uuidOther: UUID, 
+        token: str, message: str }</li>
+    <li>POST /service/[service_name: str]/messageAll { uuid: UUID, token: str, 
+        message: str }</li>
+    <li>POST /service/[service_name: str]/message/read { uuid: UUID, token: str }</li>
+    <li>POST /service/[service_name: str]/data/read { uuid: UUID, token: str }</li>
+    <li>GET /service/[service_name: str]</li>
+    <li>GET /service/[service_name: str]/online</li>
+    <li>GET /user/[username: str]</li>
+    <li>GET /user/[uuid: UUID]</li>
+    <li>GET /user/[uuid: UUID]/password?old=str&amp;new=str</li>
+    <li>POST /user/[uuid: UUID]/password { <a href="#auth">token</a>: str, new: str }</li>
+</ul>
+
+<h3 id="auth"><a href="/game-auth">GameAuth</a> and other Auth methods</h3>
+
+<a href="#auth-content">Jump to content</a>
+
+<ul>
+    <li>POST /auth/game/start { uuid: UUID, name: str }</li>
+    <li>POST /auth/game/check { uuid: UUID }</li>
+    <li>POST /auth/delete { uuid: UUID, token: str }</li>
+</ul>
+
+<h3 id="admin">Admin methods</h3>
+
+<a href="#auth-content">Jump to content</a>
+
+The following can only be used with the password set by the owner of the API:
+<ul>
+    <li>POST /service/[service_name: str]/create { pass: str, servicePass: str }</li>
+    <li>/!\ POST /service/[service_name: str]/rename { pass: str, new: str }</li>
+    <li>/!\ POST /service/[service_name: str]/delete { pass: str }</li>
+</ul>
+
+/!\ The delete and rename methods will stop the API for a moment as they require a data
+migration during which the API would be unstable if it was kept running. This is why they
+are owner-only.<br>
+<br>
+<br>
+The following can be used by any service admin, which is someone who knows a servicePass.
+<ul>
+    <li>POST /service/[service_name: str]/allowChat { servicePass: str, allow: bool }</li>
+    <li>POST /service/[service_name: str]/setPremium { servicePass: str, uuid: UUID,
+        status: int }</li>
+    <li>POST /service/[service_name: str]/data { servicePass: str, uuid: Optional:UUID, data: JSON }</li>
+    <li>POST /service/[service_name: str]/data/send { servicePass: str, uuid: UUID, data: JSON }</li>
+    <li>POST /service/[service_name: str]/data/sendAll { servicePass: str, data: JSON }</li>
+</ul>
+
+<hr>
+
+The rest of this documentation is still being written - sorry!
+
+<h2 id="main-content">Main methods</h2>
+<h2 id="auth-content">Auth methods</h2>
+<h2 id="admin-content">Admin methods</h2>

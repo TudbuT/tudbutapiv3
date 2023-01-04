@@ -56,6 +56,13 @@ public class Listener implements RequestHandler.Listener {
         Response r = new Response(request, data, 200, "OK");
         res.call(r);
     }
+    @GET
+    @Path("/doc")
+    public void onDocHTML(Request request, Callback<Response> res, Callback<Throwable> rej) {
+        String data = request.context.file("doc.html");
+        Response r = new Response(request, data, 200, "OK");
+        res.call(r);
+    }
 
     Response redirect(Request req, String path) {
         Response r = new Response(req, "Redirecting...", 302, "Moved Temporarily");

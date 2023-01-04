@@ -534,7 +534,8 @@ public class Listener implements RequestHandler.Listener {
             if(user != null) {
                 tcn.set("found", true);
                 RawKey key = user.service(Database.service(service)).ok().await().login(version);
-                tcn.set("key", key.toString());
+                tcn.set("key", key.toHashString());
+                tcn.set("---NOTE key", "This field has been deprecated, and instead, `token` should function both as authentication token and as key.");
                 tcn.set("token", key.toHashString());
                 tcn.set("user", user.data);
                 tcn.set("success", true);
@@ -543,7 +544,7 @@ public class Listener implements RequestHandler.Listener {
         return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
     }
 
-    // To decrypt a message: parseJSON(key.decryptString(decodeB64(messageString))))
+    // To decrypt a message: parseJSON(token.decryptString(decodeB64(messageString))))
     @POST
     @Path("/api/service/[a-z_]+/message")
     public Response message(

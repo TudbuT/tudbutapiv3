@@ -21,7 +21,7 @@ public class GameAuthentication {
     private GameAuthentication(UUID user, String username) {
         this.user = user;
         this.username = username;
-        currentServerHash = Tools.randomString(20, "0123456789abcdef"); // This is an invlid format, so we don't conflict with real servers!
+        currentServerHash = Tools.randomString(20, "0123456789abcdef"); // This is an invalid format, so we don't conflict with real servers!
     }
 
     public static GameAuthentication get(UUID uuid, String username) {

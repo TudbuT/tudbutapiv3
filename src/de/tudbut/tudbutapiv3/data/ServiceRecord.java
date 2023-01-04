@@ -57,14 +57,18 @@ public class ServiceRecord {
         return new RawKey(Database.key.decryptString(new String(Base64.getDecoder().decode(data.getString("messageToken")))));
     }
 
+    public RawKey clientSideKey() {
+        return new RawKey(decryptKey().toHashString());
+    }
+
     public void message(TCN msg) {
         while(data.getArray("messages").size() > 10)
             data.getArray("messages").remove(0);
-        data.getArray("messages").add(Base64.getEncoder().encodeToString(decryptKey().encryptString(JSON.write(msg)).getBytes()));
+        data.getArray("messages").add(Base64.getEncoder().encodeToString(clientSideKey().encryptString(JSON.write(msg)).getBytes()));
     }
     public void dataMessage(TCN msg) {
         while(data.getArray("dataMessages").size() > 10)
             data.getArray("dataMessages").remove(0);
-        data.getArray("dataMessages").add(Base64.getEncoder().encodeToString(decryptKey().encryptString(JSON.write(msg)).getBytes()));
+        data.getArray("dataMessages").add(Base64.getEncoder().encodeToString(clientSideKey().encryptString(JSON.write(msg)).getBytes()));
     }
 }

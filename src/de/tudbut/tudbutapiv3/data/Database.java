@@ -26,6 +26,7 @@ public class Database {
     public static boolean initialized = false;
     public static RawKey key;
     public static int currentVersion = 8;
+    private static Lock lock = new Lock();
 
     public static void initiailize() {
         if(initialized) {
@@ -221,10 +222,12 @@ public class Database {
     }
 
     public static UserRecord getUser(UUID uuid) {
+        lock.waitHere();
         return getUser(uuid, true);
     }
 
     public static UserRecord getUser(UUID uuid, boolean create) {
+        lock.waitHere();
         TCN tcn = data.getSub("users").getSub(uuid.toString());
         if(tcn != null) {
             return new UserRecord(uuid, tcn);
@@ -238,10 +241,12 @@ public class Database {
     }
 
     public static UserRecord getUser(String uuid, String name) {
+        lock.waitHere();
         return getUser(uuid, name, true);
     }
 
     public static UserRecord getUser(String uuid, String name, boolean create) {
+        lock.waitHere();
         if(name != null)
             uuid = data.getSub("nameToUUID").getString(name);
         if(uuid != null)
@@ -250,18 +255,61 @@ public class Database {
     }
 
     public static boolean serviceExists(String service) {
+        lock.waitHere();
         return data.getSub("services").getSub(service) != null;
     }
 
     public static ServiceData service(String service) {
+        lock.waitHere();
         return new ServiceData(service, data.getSub("services").getSub(service));
     }
 
     public static ServiceData makeService(String name, String servicePassword) {
+        lock.waitHere();
         ServiceData service = new ServiceData(name, servicePassword);
         data.getSub("services").set(name, service.data);
         logger.warn("Service created: " + name + ". Thank you!");
         return service;
+    }
+
+    public static void migrateServiceDelete(String name) {
+        lock.waitHere();
+        lock.lock();
+        data.getSub("services").set(name, null);
+        logger.warn("[Load] Data migration needed. Need to delete service data.");
+        TCN tcn = data.getSub("users");
+        AtomicInteger modifications = new AtomicInteger(0);
+        tcn.map.entries().forEach(entry -> {
+            TCN user = (TCN) entry.val;
+            TCN services = user.getSub("services");
+            if(services.get(name) != null) {
+                services.set(name, null);
+                modifications.getAndIncrement();
+            }
+        });
+        logger.info("[Load] Data migration was successful. " + modifications + " modifications were made. Thank you for your patience.");
+        lock.unlock();
+    }
+
+    public static void migrateServiceRename(String name, String newName) {
+        lock.waitHere();
+        lock.lock();
+        data.getSub("services").set(newName, data.getSub("services").get(name));
+        data.getSub("services").set(name, null);
+        logger.warn("[Load] Data migration needed. Need to move service data.");
+        TCN tcn = data.getSub("users");
+        AtomicInteger modifications = new AtomicInteger(0);
+        tcn.map.entries().forEach(entry -> {
+            TCN user = (TCN) entry.val;
+            TCN services = user.getSub("services");
+            if(services.get(name) != null) {
+                services.set(newName, services.get(name));
+                services.set(name, null);
+                modifications.getAndIncrement();
+            }
+        });
+        logger.info("[Load] Data migration was successful. " + modifications + " modifications were made. Thank you for your patience.");
+        lock.unlock();
     }
 }
 

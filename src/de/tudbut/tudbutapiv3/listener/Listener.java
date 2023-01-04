@@ -115,6 +115,51 @@ public class Listener implements RequestHandler.Listener {
     }
 
     @POST
+    @Path("/api/service/[a-z]+/delete")
+    public Response deleteService(
+            Request request,
+            @PPathFragment(3) String service,
+            @PBody("pass") String password
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("success", false);
+        tcn.set("passwordMatches", false);
+        tcn.set("deleted", false);
+        if(Database.data.getString("password").equals(Hasher.sha512hex(Hasher.sha512hex(password)))) { 
+            tcn.set("passwordMatches", true);
+            if(Database.serviceExists(service)) {
+                tcn.set("deleted", true);
+                Database.migrateServiceDelete(service);
+            }
+            tcn.set("success", true);
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @POST
+    @Path("/api/service/[a-z]+/rename")
+    public Response renameService(
+            Request request,
+            @PPathFragment(3) String service,
+            @PBody("pass") String password,
+            @PBody("new") String newName
+    ) {
+        TCN tcn = new TCN();
+        tcn.set("success", false);
+        tcn.set("passwordMatches", false);
+        tcn.set("renamed", false);
+        if(Database.data.getString("password").equals(Hasher.sha512hex(Hasher.sha512hex(password)))) { 
+            tcn.set("passwordMatches", true);
+            if(Database.serviceExists(service)) {
+                tcn.set("renamed", true);
+                Database.migrateServiceRename(service, newName);
+                tcn.set("success", true);
+            }
+        }
+        return new Response(request, JSON.write(tcn), 200, "OK", "application/json");
+    }
+
+    @POST
     @Path("/api/service/[a-z]+/setPremium")
     public Response setPremium(
             Request request,
